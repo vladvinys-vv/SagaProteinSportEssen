@@ -1,8 +1,8 @@
-import { BrowserRouter, Routes, Route } from "react-router";
+import { BrowserRouter, Routes, Route, Link, NavLink } from "react-router";
+import { useTranslation } from "react-i18next";
 import { CartProvider } from "@/features/cart/context/CartContext";
 import { ProductProvider } from "@/features/catalog/context/ProductContext";
 import Layout from "@/components/Layout";
-import CartDrawer from "@/components/CartDrawer";
 import HomePage from "@/pages/HomePage";
 import CatalogPage from "@/pages/CatalogPage";
 import ProductPage from "@/pages/ProductPage";
@@ -13,8 +13,6 @@ import ContactPage from "@/pages/ContactPage";
 import ImprintPage from "@/pages/ImprintPage";
 import PrivacyPage from "@/pages/PrivacyPage";
 import NotFoundPage from "@/pages/NotFoundPage";
-
-import CartDrawer from "@/components/CartDrawer";
 
 function App() {
   return (
@@ -35,7 +33,6 @@ function App() {
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Layout>
-          <CartDrawer />
         </BrowserRouter>
       </CartProvider>
     </ProductProvider>

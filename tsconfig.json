@@ -2,20 +2,18 @@
   "compilerOptions": {
     "target": "ES2022",
     "useDefineForClassFields": true,
-    "lib": ["DOM", "DOMIterable", "ES2022"],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": false,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
-    "forceConsistentFormData": true,
     "noImplicitAny": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
-    "unstable_bundledJsonImports": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
@@ -27,5 +25,5 @@
     }
   },
   "include": ["src"],
-  "exclude": ["node_modules", "public/build", "tests"]
+  "exclude": ["node_modules", "dist", "tests"]
 }
