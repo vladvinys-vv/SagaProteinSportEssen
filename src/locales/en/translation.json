@@ -1,0 +1,61 @@
+{
+  "nav": {
+    "home": "Home",
+    "products": "Products",
+    "about": "About",
+    "contact": "Contact",
+    "cart": "Cart",
+    "menu": "Menu"
+  },
+  "footer": {
+    "slogan": "Premium protein for athletes.",
+    "company": "Company",
+    "service": "Service",
+    "legal": "Legal",
+    "imprint": "Imprint",
+    "privacy": "Privacy",
+    "shipping": "Shipping",
+    "returns": "Returns",
+    "terms": "Terms",
+    "tax_id": "VAT ID: DE123456789",
+    "copyright": "© {{year}} SAGA PROTEIN. All rights reserved."
+  },
+  "home": {
+    "hero_title": "Natural Proteins for Your Success",
+    "hero_subtitle": "Premium Whey, plant proteins & sports nutrition – direct from manufacturer.",
+    "shop_now": "Shop Now",
+    "best_sellers": "Best Sellers",
+    "new_products": "New",
+    "sale": "Sale",
+    "shop_by_category": "Shop by Category",
+    "trust_badges": {
+      "free_shipping": "Free shipping from €49",
+      "fast_delivery": "24h dispatch",
+      "quality": "100% quality guarantee",
+      "support": "Email support 24/7"
+    }
+  },
+  "products": {
+    "title": "All Products",
+    "filter": "Filter",
+    "sort_by": "Sort by",
+    "sort": {
+      "featured": "Featured",
+      "price_low": "Price: Low to High",
+      "price_high": "Price: High to Low",
+      "rating": "Rating",
+      "newest": "Newest"
+    },
+    "category": {
+      "whey": "Whey Protein",
+      "plant": "Plant Proteins",
+      "casein": "Casein",
+      "amino": "Amino Acids",
+      "bar": "Protein Bars",
+      "mass": "Mass Gainers"
+    },
+    "in_stock": "In Stock",
+    "out_of_stock": "Out of Stock",
+    "low_stock": "Almost gone"
+  }
+}

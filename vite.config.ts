@@ -1,0 +1,32 @@
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import { resolve } from "node:path";
+
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      "@": resolve(__dirname, "./src"),
+    },
+  },
+  server: {
+    port: 3100,
+    host: true,
+  },
+  build: {
+    outDir: "dist",
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "react-vendor": ["react", "react-dom"],
+          "i18n": ["i18next", "react-i18next"],
+        },
+      },
+    },
+  },
+  test: {
+    globals: true,
+    environment: "happy-dom",
+    setupFiles: ["./tests/setup.ts"],
+  },
+});

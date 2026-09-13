@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    scroll-behavior: smooth;
+  }
+}
+
+@theme inline {
+  --font-family-sans: "Inter", system-ui, sans-serif;
+  --color-brand-50: #f5f8ff;
+  --color-brand-100: #e0eaff;
+  --color-brand-200: #b9caff;
+  --color-brand-300: #91aaef;
+  --color-brand-400: #6a8beb;
+  --color-brand-500: #4d6bdc;
+  --color-brand-600: #3b57b3;
+  --color-brand-700: #2a3e8a;
+  --color-brand-800: #1a2761;
+  --color-brand-900: #0f1339;
+  --color-accent-gold: #c9a8ff;
+  --color-accent-gold-hover: #b595e6;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+}
