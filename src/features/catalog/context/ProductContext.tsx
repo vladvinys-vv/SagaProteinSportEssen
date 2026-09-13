@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Product } from "@/types";
+import { MOCK_PRODUCTS } from "@/data/products";
 
 interface ProductContextType {
   products: Product[];
@@ -17,9 +18,9 @@ export function ProductProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // TODO: Replace with real API call
-    // Simulate loading delay
+    // Simulate network delay
     setTimeout(() => {
-      setProducts([]);
+      setProducts(MOCK_PRODUCTS);
       setLoading(false);
     }, 500);
   }, []);
@@ -55,6 +56,7 @@ export function useProduct(slug: string) {
 
   useEffect(() => {
     setLoading(true);
+    // Use the context's getProductBySlug directly for immediate results
     const found = ctx.getProductBySlug(slug);
     if (found) {
       setProduct(found);
@@ -64,7 +66,7 @@ export function useProduct(slug: string) {
     }
     setLoading(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug]);
+  }, [slug, ctx.products.length]);
 
   return { product, loading, error };
 }
