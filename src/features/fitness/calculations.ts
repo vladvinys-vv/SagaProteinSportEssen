@@ -239,6 +239,7 @@ export const calculateAutoAdjustment = (
   entries: FoodEntry[],
   foods: FoodItem[],
   alcoholEntries: AlcoholEntry[],
+  activityByDate: Record<string, DailyActivity>,
   currentAdjustment = 0,
 ) => {
   const sortedWeights = [...weights].sort((a, b) => a.date.localeCompare(b.date));
@@ -246,14 +247,15 @@ export const calculateAutoAdjustment = (
   const firstWeight = sortedWeights[0];
   const lastWeight = sortedWeights[sortedWeights.length - 1];
   const days = Math.max(1, Math.round((new Date(`${lastWeight.date}T12:00:00`).getTime() - new Date(`${firstWeight.date}T12:00:00`).getTime()) / 86400000));
-  const dates = new Set(sortedWeights.map((entry) => entry.date));
   const dayIntakes = sortedWeights.map((weight) => {
     const totals = calculateDailyTotals(entries.filter((entry) => entry.date === weight.date), foods, alcoholEntries.filter((entry) => entry.date === weight.date));
-    return totals.calories;
+    const activity = activityByDate[weight.date] ?? { lyingHours: 8, sittingHours: 8, standingHours: 8, trainingHours: 0 };
+    const activityCalories = calculateActivityCalories(profile, activity);
+    return totals.calories - activityCalories;
   });
   const avgIntake = dayIntakes.reduce((sum, value) => sum + value, 0) / dayIntakes.length;
   const actualDeltaKg = lastWeight.weightKg - firstWeight.weightKg;
-  const expectedDeltaKg = ((avgIntake - calculateTargetCalories(profile, { lyingHours: 8, sittingHours: 8, standingHours: 8, trainingHours: 0 }, currentAdjustment)) * days) / 7700;
+  const expectedDeltaKg = ((avgIntake - calculateBmr(profile) - currentAdjustment) * days) / 7700;
   const discrepancyKg = actualDeltaKg - expectedDeltaKg;
   const recommendation = Math.round((-discrepancyKg * 7700 / days) * 0.5 / 25) * 25;
   return clamp(recommendation, -300, 300);
