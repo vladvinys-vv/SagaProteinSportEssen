@@ -1,36 +1,21 @@
-import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
-import { BrowserRouter } from "react-router";
-import HomePage from "@/pages/HomePage";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import App from "@/App";
 
-describe("HomePage", () => {
-  it("renders hero title", () => {
-    render(
-      <BrowserRouter>
-        <HomePage />
-      </BrowserRouter>
-    );
+beforeEach(() => window.localStorage.clear());
+afterEach(() => cleanup());
 
-    expect(screen.getByText(/Natürliche Proteine/i)).toBeInTheDocument();
+describe("Форма", () => {
+  it("показывает локальную панель питания", () => {
+    render(<App />);
+    expect(screen.getByText("Форма")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Держи ритм" })).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "Основная навигация" })).toBeInTheDocument();
   });
 
-  it("renders shop now button", () => {
-    render(
-      <BrowserRouter>
-        <HomePage />
-      </BrowserRouter>
-    );
-
-    expect(screen.getByText(/Jetzt shoppen/i)).toBeInTheDocument();
-  });
-
-  it("renders trust badges", () => {
-    render(
-      <BrowserRouter>
-        <HomePage />
-      </BrowserRouter>
-    );
-
-    expect(screen.getByText(/Kostenfreier Versand/i)).toBeInTheDocument();
+  it("открывает обязательный онбординг для нового профиля", () => {
+    render(<App />);
+    expect(screen.getByRole("heading", { name: "Настроим твою норму" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Сохранить профиль" })).toBeEnabled();
   });
 });

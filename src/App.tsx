@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, type FC } from "react";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { AppProvider, useAppState } from "@/state/AppContext";
-import Layout from "@/components/Layout";
+import AppLayout from "@/components/Layout";
 import Onboarding from "@/components/Onboarding";
 import DashboardPage from "@/pages/DashboardPage";
 import NutritionPage from "@/pages/NutritionPage";
@@ -10,10 +10,10 @@ import AnalyticsPage from "@/pages/AnalyticsPage";
 import ProfilePage from "@/pages/ProfilePage";
 import NotFoundPage from "@/pages/NotFoundPage";
 
-function App() {
+const DashboardRoutes: FC = () => {
   const { state, updateState } = useAppState();
   const [onboardingOpen, setOnboardingOpen] = useState(!state.profile.completed);
-  return <AppProvider><BrowserRouter><Layout>
+  return <>
     <Routes>
       <Route path="/" element={<DashboardPage />} />
       <Route path="/nutrition" element={<NutritionPage />} />
@@ -23,7 +23,11 @@ function App() {
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
     <Onboarding profile={state.profile} open={onboardingOpen} onClose={() => setOnboardingOpen(false)} onSave={(profile) => { updateState({ profile }); setOnboardingOpen(false); }} />
-  </Layout></BrowserRouter></AppProvider>;
+  </>;
+};
+
+function App() {
+  return <AppProvider><BrowserRouter><AppLayout><DashboardRoutes /></AppLayout></BrowserRouter></AppProvider>;
 }
 
 export default App;

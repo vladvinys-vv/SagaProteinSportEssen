@@ -19,7 +19,6 @@ export default defineConfig({
       output: {
         manualChunks: {
           "react-vendor": ["react", "react-dom"],
-          "i18n": ["i18next", "react-i18next"],
         },
       },
     },

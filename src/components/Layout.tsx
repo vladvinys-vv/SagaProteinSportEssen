@@ -1,4 +1,4 @@
-import type { ReactElement } from "react";
+import type { FC, ReactNode } from "react";
 import { Activity, Database, ShieldCheck } from "lucide-react";
 import { NavLink, Outlet } from "react-router";
 
@@ -8,7 +8,8 @@ const navItems = [
   { to: "/workouts", label: "Тренировки", icon: ShieldCheck },
 ];
 
-const AppLayout = (): ReactElement => <div className="app-shell">
+const AppLayout: FC<{ children?: ReactNode }> = ({ children }) => <div className="app-shell">
+  {children}
   <header className="app-header">
     <NavLink className="brand" to="/">
       <span className="brand-mark"><Activity size={19} /></span>
@@ -20,4 +21,4 @@ const AppLayout = (): ReactElement => <div className="app-shell">
   <nav className="bottom-nav" aria-label="Основная навигация">{navItems.map(({ to, label, icon: Icon }) => <NavLink key={to} to={to} end={to === "/"} className={({ isActive }) => isActive ? "is-active" : undefined}><Icon size={19} /><span>{label}</span></NavLink>)}</nav>
 </div>;
 
-export default Layout;
+export default AppLayout;

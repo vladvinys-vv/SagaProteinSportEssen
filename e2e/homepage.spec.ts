@@ -1,34 +1,23 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("SagaProteinSportEssen Homepage", () => {
-  test("has correct title", async ({ page }) => {
+test.describe("Форма", () => {
+  test("открывает локальную панель", async ({ page }) => {
     await page.goto("/");
-    await expect(page).toHaveTitle(/SAGA Protein/i);
+    await expect(page).toHaveTitle(/Форма/);
+    await expect(page.getByRole("heading", { name: "Держи ритм" })).toBeVisible();
   });
 
-  test("hero section is visible", async ({ page }) => {
+  test("показывает онбординг профиля", async ({ page }) => {
     await page.goto("/");
-    const hero = page.getByRole("heading", { name: /Natürliche Proteine/i });
-    await expect(hero).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Настроим твою норму" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Сохранить профиль" })).toBeEnabled();
   });
 
-  test("navigation links work", async ({ page }) => {
+  test("переключает основные разделы", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("link", { name: "Produkte" }).click();
-    await expect(page).toHaveURL("/products");
-  });
-
-  test("language switcher works", async ({ page }) => {
-    await page.goto("/");
-    const switcher = page.getByRole("button", { name: "Deutsch" });
-    await switcher.click();
-    await page.getByRole("button", { name: "English" }).click();
-    await expect(page.getByRole("link", { name: "Products" })).toBeVisible();
-  });
-
-  test("accessibility check", async ({ page }) => {
-    await page.goto("/");
-    const violations = await new AxeBuilder({ page }).analyze();
-    expect(violations.violations).toEqual([]);
+    await page.getByRole("button", { name: "Закрыть" }).click();
+    await page.getByRole("navigation", { name: "Основная навигация" }).getByRole("link", { name: "Питание" }).click();
+    await expect(page).toHaveURL(/\/nutrition$/);
+    await expect(page.getByRole("heading", { name: "Каждый приём на виду" })).toBeVisible();
   });
 });
