@@ -20,4 +20,16 @@ test.describe("Форма", () => {
     await expect(page).toHaveURL(/\/nutrition$/);
     await expect(page.getByRole("heading", { name: "Каждый приём на виду" })).toBeVisible();
   });
+
+  test("использует нижнюю навигацию Питание, Тренировки, Профиль", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Закрыть" }).click();
+    const navigation = page.getByRole("navigation", { name: "Основная навигация" });
+    await expect(navigation.getByRole("link", { name: "Питание" })).toBeVisible();
+    await expect(navigation.getByRole("link", { name: "Тренировки" })).toBeVisible();
+    await expect(navigation.getByRole("link", { name: "Профиль" })).toBeVisible();
+    await navigation.getByRole("link", { name: "Профиль" }).click();
+    await expect(page).toHaveURL(/\/profile$/);
+    await expect(page.getByRole("heading", { name: "Твои параметры" })).toBeVisible();
+  });
 });

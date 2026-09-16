@@ -1807,7 +1807,7 @@ details ol {
   backdrop-filter: blur(18px);
 }
 
-.bottom-nav button {
+.bottom-nav a {
   display: grid;
   place-items: center;
   gap: 2px;
@@ -1816,9 +1816,10 @@ details ol {
   color: var(--muted);
   font-size: 0.62rem;
   font-weight: 800;
+  text-decoration: none;
 }
 
-.bottom-nav button.is-active {
+.bottom-nav a.is-active {
   color: var(--green);
 }
 

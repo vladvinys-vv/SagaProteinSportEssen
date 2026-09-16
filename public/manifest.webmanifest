@@ -1,6 +1,8 @@
 {
   "name": "Форма — питание и тренировки",
   "short_name": "Форма",
+  "id": "/",
+  "lang": "ru",
   "description": "Локальный дневник питания, тренировок и прогресса",
   "start_url": "/",
   "scope": "/",
@@ -8,6 +10,7 @@
   "background_color": "#090e14",
   "theme_color": "#090e14",
   "orientation": "portrait-primary",
+  "categories": ["health", "fitness"],
   "icons": [
     {
       "src": "/favicon.svg",
