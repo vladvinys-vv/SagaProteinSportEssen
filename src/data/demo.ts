@@ -1,5 +1,5 @@
 import type { AlcoholEntry, AppState, Food, MealEntry, MealPreset, MealType, PriceEntry, Profile, Recipe, WeightEntry, WorkoutProgram } from "@/types";
-import { calculateAlcoholCalories, dateKey, daysAgoKey, scaleNutrition } from "@/lib/calculations";
+import { calculateAlcoholCalories, dateKey, daysAgoKey, GOAL_CALORIE_ADJUSTMENTS, scaleNutrition } from "@/lib/calculations";
 
 export const BASE_FOODS: Food[] = [
   { id: "oats", name: "Овсянка", category: "Крупы", calories: 380, protein: 13, fat: 7, carbs: 62, sugar: 1, unit: "g", barcode: "100000000001" },
@@ -41,7 +41,7 @@ export const PROGRAMS: WorkoutProgram[] = [
 ];
 
 const makeEntry = (date: string, meal: MealType, food: Food, amountG: number, extra: Partial<MealEntry> = {}): MealEntry => ({ id: `${date}-${meal}-${food.id}-${amountG}`, date, meal, foodId: food.id, name: food.name, amountG, ...scaleNutrition(food.calories, food.protein, food.fat, food.carbs, food.sugar, amountG), source: "database", junkFood: false, barcode: food.barcode, ...extra });
-const makeProfile = (): Profile => ({ completed: false, weightKg: 78, heightCm: 180, age: 30, sex: "male", goal: "recomp", currency: "RUB", calorieAdjustment: -200, proteinGPerKg: 2, fatGPerKg: 0.8, sugarLimitG: 40, activityHours: { lying: 11, sitting: 9, standing: 3, training: 1 }, steps: 8200 });
+const makeProfile = (): Profile => ({ completed: false, weightKg: 78, heightCm: 180, age: 30, sex: "male", goal: "recomp", currency: "RUB", calorieAdjustment: GOAL_CALORIE_ADJUSTMENTS.recomp, proteinGPerKg: 2, fatGPerKg: 0.8, sugarLimitG: 40, activityHours: { lying: 11, sitting: 9, standing: 3, training: 1 }, steps: 8200 });
 
 export const createDemoState = (): AppState => {
   const meals: MealEntry[] = [];

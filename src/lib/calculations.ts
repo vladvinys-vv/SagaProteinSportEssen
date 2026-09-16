@@ -4,6 +4,7 @@ import type {
   AlcoholEntry,
   AppState,
   DailyTotals,
+  Goal,
   MacroTargets,
   MealEntry,
   PriceEntry,
@@ -15,6 +16,7 @@ import type {
 
 export const ACTIVITY_METS: Record<ActivityState, number> = { lying: 1, sitting: 1.3, standing: 2, training: 6 };
 export const GOAL_EXPECTED_WEEKLY_CHANGE: Record<Profile["goal"], number> = { gain: 0.25, maintain: 0, recomp: 0, cut: -0.5 };
+export const GOAL_CALORIE_ADJUSTMENTS: Record<Goal, number> = { gain: 300, maintain: 0, recomp: 0, cut: -450 };
 
 export const dateKey = (date = new Date()): string => new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
 export const daysAgoKey = (days: number): string => { const date = new Date(); date.setDate(date.getDate() - days); return dateKey(date); };
@@ -25,7 +27,7 @@ export const calculateActivityCalories = (profile: Profile): number => {
   const metHours = (Object.keys(ACTIVITY_METS) as ActivityState[]).reduce((total, state) => total + profile.activityHours[state] * ACTIVITY_METS[state], 0);
   return (calculateBmr(profile) / 24) * metHours;
 };
-export const calculateTargetCalories = (profile: Profile): number => Math.round(calculateActivityCalories(profile) + profile.calorieAdjustment);
+export const calculateTargetCalories = (profile: Profile): number => Math.round(calculateActivityCalories(profile) + GOAL_CALORIE_ADJUSTMENTS[profile.goal] + profile.calorieAdjustment);
 export const calculateMacroTargets = (profile: Profile): MacroTargets => {
   const calories = calculateTargetCalories(profile);
   const protein = profile.weightKg * profile.proteinGPerKg;
@@ -65,19 +67,22 @@ export const detectPlateau = (state: AppState, today = dateKey()): { active: boo
   const adherence = getCalorieAdherence(state.meals, state.alcohol, calculateTargetCalories(state.profile), 13);
   return Math.abs(weeklyChange) > 0.2 || adherence < 0.8 ? null : { active: true, weeklyChange, adherence };
 };
-export const getAutoCorrection = (state: AppState, today = dateKey()): { active: boolean; suggestedAdjustment: number; observedWeeklyChange: number; expectedWeeklyChange: number; averageCalories: number } | null => {
-  const start = new Date(`${today}T12:00:00`); start.setDate(start.getDate() - 6);
+export const getAutoCorrection = (state: AppState, today = dateKey(), windowDays = 7): { active: boolean; suggestedAdjustment: number; observedWeeklyChange: number; expectedWeeklyChange: number; averageCalories: number } | null => {
+  const safeWindowDays = Math.min(14, Math.max(7, windowDays));
+  const start = new Date(`${today}T12:00:00`); start.setDate(start.getDate() - (safeWindowDays - 1));
   const startDate = start.toISOString().slice(0, 10);
+  const days = Array.from({ length: safeWindowDays }, (_, index) => { const date = new Date(`${today}T12:00:00`); date.setDate(date.getDate() - index); return dateKey(date); });
   const meals = state.meals.filter((entry) => entry.date >= startDate && entry.date <= today);
-  const loggedDays = new Set(meals.map((entry) => entry.date)).size;
+  const alcohol = state.alcohol.filter((entry) => entry.date >= startDate && entry.date <= today);
+  const loggedDays = new Set([...meals.map((entry) => entry.date), ...alcohol.map((entry) => entry.date)]).size;
   const weightStart = getSevenDayAverage(state.weights, startDate);
   const weightEnd = getSevenDayAverage(state.weights, today);
-  if (loggedDays < 7 || weightStart === null || weightEnd === null) return null;
+  if (loggedDays < safeWindowDays || weightStart === null || weightEnd === null) return null;
   const observedWeeklyChange = weightEnd - weightStart;
   const expectedWeeklyChange = GOAL_EXPECTED_WEEKLY_CHANGE[state.profile.goal];
   const discrepancy = observedWeeklyChange - expectedWeeklyChange;
   if (Math.abs(discrepancy) <= 0.25) return null;
-  const averageCalories = meals.reduce((total, entry) => total + entry.calories, 0) / loggedDays;
+  const averageCalories = days.reduce((total, date) => total + calculateDailyTotals(state.meals, state.alcohol, date).calories, 0) / safeWindowDays;
   const suggestedAdjustment = Math.round(Math.max(-250, Math.min(250, -discrepancy * (7700 / 7))) / 10) * 10;
   return { active: suggestedAdjustment !== 0, suggestedAdjustment, observedWeeklyChange, expectedWeeklyChange, averageCalories };
 };
@@ -95,12 +100,15 @@ export const getNoJunkStreak = (meals: MealEntry[], today = dateKey()): number =
 };
 export const getNormalizedPrice = (entry: PriceEntry): number => entry.packagePrice / (entry.packageSizeG ?? entry.packageSizeMl ?? 100) * 100;
 export const getPriceCategory = (entries: PriceEntry[], entryId?: string): "budget" | "medium" | "premium" | null => {
-  const matches = entries.map((entry) => ({ entry, price: getNormalizedPrice(entry) })).sort((a, b) => a.price - b.price);
+  const target = entries.find((entry) => entry.id === entryId);
+  if (!target) return null;
+  const matches = entries
+    .filter((entry) => target.productId ? entry.productId === target.productId : entry.productName === target.productName)
+    .map((entry) => ({ entry, price: getNormalizedPrice(entry) }))
+    .sort((a, b) => a.price - b.price);
   if (!matches.length) return null;
   if (matches.length === 1) return "medium";
-  const target = matches.find(({ entry }) => entry.id === entryId);
-  if (!target) return null;
-  const position = matches.indexOf(target) / (matches.length - 1);
+  const position = matches.findIndex(({ entry }) => entry.id === entryId) / (matches.length - 1);
   return position <= 0.33 ? "budget" : position >= 0.67 ? "premium" : "medium";
 };
 export const getPriceCategoriesByProduct = (entries: PriceEntry[], productId?: string): "budget" | "medium" | "premium" | null => {
