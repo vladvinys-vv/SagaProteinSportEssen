@@ -1,4 +1,4 @@
-import type { AlcoholEntry, AppState, Food, MealEntry, MealPreset, PriceEntry, Profile, Recipe, WeightEntry, WorkoutProgram } from "@/types";
+import type { AlcoholEntry, AppState, Food, MealEntry, MealPreset, MealType, PriceEntry, Profile, Recipe, WeightEntry, WorkoutProgram } from "@/types";
 import { calculateAlcoholCalories, dateKey, daysAgoKey, scaleNutrition } from "@/lib/calculations";
 
 export const BASE_FOODS: Food[] = [
