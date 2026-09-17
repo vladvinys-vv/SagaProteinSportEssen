@@ -5,6 +5,54 @@
     font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     scroll-behavior: smooth;
   }
+
+  :focus-visible {
+    outline: 3px solid rgba(59, 87, 179, 0.35);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .prose {
+    max-width: 68ch;
+    color: #374151;
+    line-height: 1.75;
+  }
+
+  .prose h1,
+  .prose h2,
+  .prose h3 {
+    color: #111827;
+    line-height: 1.25;
+  }
+
+  .prose h1 {
+    margin-bottom: 1rem;
+    font-size: 2rem;
+    font-weight: 800;
+  }
+
+  .prose h2 {
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+    font-size: 1.35rem;
+    font-weight: 700;
+  }
+
+  .prose h3 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+
+  .prose p {
+    margin-bottom: 1rem;
+  }
+
+  .prose strong {
+    color: #111827;
+  }
 }
 
 @theme inline {

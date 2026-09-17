@@ -1,4 +1,15 @@
 {
+  "titles": {
+    "home": "Home",
+    "products": "Products",
+    "cart": "Cart",
+    "checkout": "Checkout",
+    "about": "About",
+    "contact": "Contact",
+    "imprint": "Imprint",
+    "privacy": "Privacy",
+    "not_found": "Page not found"
+  },
   "nav": {
     "home": "Home",
     "products": "Products",
@@ -34,6 +45,17 @@
       "quality": "100% quality guarantee",
       "support": "Email support 24/7"
     }
+  },
+  "contact": {
+    "eyebrow": "We are happy to help",
+    "hint": "Send us a message about products, orders, or delivery.",
+    "name": "Name",
+    "email": "Email",
+    "message": "Message",
+    "send": "Send",
+    "submitted": "Message sent!",
+    "submitted_hint": "Thank you. We will get back to you as soon as possible.",
+    "send_another": "Send another message"
   },
   "products": {
     "title": "All Products",

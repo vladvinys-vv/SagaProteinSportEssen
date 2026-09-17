@@ -66,9 +66,9 @@ export const MOCK_PRODUCTS: Product[] = [
         carbohydrates: "16 g",
         sugar: "15 g",
       },
-      warnings: ["Nur für Erwachsene", "Nicht als Mehlwertersatz empfohlen"],
+      warnings: ["Nur für Erwachsene", "Nicht als Mahlzeitenersatz empfohlen"],
     },
-    ingredients: ["Whey Protein Isolat (Molke)", "Kakaoschokoladige Zuckerverwendung", "Salz", "Aromastoffe"],
+    ingredients: ["Whey Protein Isolat (Molke)", "Kakaopulver", "Salz", "Aromastoffe"],
   },
   {
     id: "plant-vanilla-500g",
@@ -134,7 +134,7 @@ export const MOCK_PRODUCTS: Product[] = [
       },
       warnings: ["Nur für Erwachsene"],
     },
-    ingredients: ["Caseinprotein (Molke)", "Kakaoschokoladiger Zuckerverwendung", "Salz", "Aromastoffe"],
+    ingredients: ["Caseinprotein (Molke)", "Kakaopulver", "Salz", "Aromastoffe"],
   },
   {
     id: "protein-bar-choco-12er",
@@ -166,7 +166,7 @@ export const MOCK_PRODUCTS: Product[] = [
       },
       warnings: ["Enthält Milch und Soja"],
     },
-    ingredients: ["Kunstharzschokolade", "Proteinquarkmasse", "Humele proteinreiche Erbsen"],
+    ingredients: ["Schokoladenstückchen", "Proteinmischung", "Erbsenprotein", "Natürliche Aromastoffe"],
   },
   {
     id: "bcaa-elixier-300g",
@@ -183,7 +183,7 @@ export const MOCK_PRODUCTS: Product[] = [
     bestseller: false,
     newProduct: false,
     stockStatus: "in-stock",
-    deliveryInfo: "Lagernd |Versand innerhalb 24h",
+    deliveryInfo: "Lagernd | Versand innerhalb 24h",
     categories: ["amino", "training"],
     tags: ["bcaa", "amino", "training", "peach"],
     variants: [

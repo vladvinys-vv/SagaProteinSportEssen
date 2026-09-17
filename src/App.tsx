@@ -49,7 +49,7 @@ function App() {
           <RouteEffects />
           <Layout>
             <Routes>
-              <Route path="/" element={<HomePage />
+              <Route path="/" element={<HomePage />} />
               <Route path="/products" element={<CatalogPage />} />
               <Route path="/products/:slug" element={<ProductPage />} />
               <Route path="/cart" element={<CartPage />} />
