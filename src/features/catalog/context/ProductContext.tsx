@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, ReactNode } from "react";
 import { Product } from "@/types";
+import { MOCK_PRODUCTS } from "@/data/products";
 
 interface ProductContextType {
   products: Product[];
@@ -16,23 +17,32 @@ export function ProductProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // TODO: Replace with real API call
-    // Simulate loading delay
-    setTimeout(() => {
-      setProducts([]);
+    let cancelled = false;
+
+    const timer = window.setTimeout(() => {
+      if (cancelled) return;
+
+      setProducts(MOCK_PRODUCTS);
       setLoading(false);
-    }, 500);
+    }, 350);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
   }, []);
 
-  const getProductBySlug = (slug: string) => {
-    return products.find((p) => p.slug === slug);
-  };
-
-  return (
-    <ProductContext.Provider value={{ products, loading, error, getProductBySlug }}>
-      {children}
-    </ProductContext.Provider>
+  const getProductBySlug = useCallback(
+    (slug: string) => products.find((product) => product.slug === slug),
+    [products],
   );
+
+  const value = useMemo(
+    () => ({ products, loading, error, getProductBySlug }),
+    [products, loading, error, getProductBySlug],
+  );
+
+  return <ProductContext.Provider value={value}>{children}</ProductContext.Provider>;
 }
 
 export function useProducts() {
@@ -49,22 +59,9 @@ export function useProduct(slug: string) {
     throw new Error("useProduct must be used within ProductProvider");
   }
 
-  const [product, setProduct] = useState<Product | undefined>();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setLoading(true);
-    const found = ctx.getProductBySlug(slug);
-    if (found) {
-      setProduct(found);
-      setError(null);
-    } else {
-      setError("Product not found");
-    }
-    setLoading(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug]);
+  const product = ctx.products.find((item) => item.slug === slug);
+  const loading = ctx.loading;
+  const error = !loading && !product ? "Product not found" : null;
 
   return { product, loading, error };
 }

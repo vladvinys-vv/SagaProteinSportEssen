@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { getViolations } from "axe-playwright";
 
 test.describe("SagaProteinSportEssen Homepage", () => {
   test("has correct title", async ({ page }) => {
@@ -28,7 +29,7 @@ test.describe("SagaProteinSportEssen Homepage", () => {
 
   test("accessibility check", async ({ page }) => {
     await page.goto("/");
-    const violations = await new AxeBuilder({ page }).analyze();
-    expect(violations.violations).toEqual([]);
+    const violations = await getViolations(page);
+    expect(violations).toEqual([]);
   });
 });
