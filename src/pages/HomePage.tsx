@@ -143,7 +143,12 @@ export default function HomePage() {
                     <button
                       type="button"
                       disabled={!variant}
-                      onClick={() => variant && addItem(product, variant)}
+                      onClick={() => {
+                        if (variant) {
+                          addItem(product, variant);
+                          document.dispatchEvent(new CustomEvent("open-cart-drawer"));
+                        }
+                      }}
                       className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-gray-200"
                     >
                       {t("products.add_short", "In den Korb")}

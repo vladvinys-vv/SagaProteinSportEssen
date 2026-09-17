@@ -56,6 +56,9 @@
     },
     "in_stock": "Auf Lager",
     "out_of_stock": "Nicht vorrätig",
-    "low_stock": "Fast ausverkauft"
+    "low_stock": "Fast ausverkauft",
+    "results_one": "Produkt",
+    "results_other": "Produkte",
+    "no_results": "Keine Produkte gefunden"
   }
 }

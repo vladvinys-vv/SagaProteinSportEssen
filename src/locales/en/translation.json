@@ -56,6 +56,9 @@
     },
     "in_stock": "In Stock",
     "out_of_stock": "Out of Stock",
-    "low_stock": "Almost gone"
+    "low_stock": "Almost gone",
+    "results_one": "Product",
+    "results_other": "Products",
+    "no_results": "No products found"
   }
 }

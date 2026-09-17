@@ -34,24 +34,19 @@ export default function CartDrawer() {
 
   const currency = (cents: number) => (cents / 100).toFixed(2);
 
+  if (!open) return null;
+
   return (
-    <div
-      className={`fixed inset-0 z-50 ${open ? "pointer-events-auto" : "pointer-events-none"}`}
-      aria-hidden={!open}
-    >
+    <div className="fixed inset-0 z-50" role="presentation">
       <div
-        className={`absolute inset-0 bg-gray-950/50 transition-opacity duration-200 ${
-          open ? "opacity-100" : "opacity-0"
-        }`}
+        className="absolute inset-0 bg-gray-950/50 transition-opacity duration-200"
         onClick={() => setOpen(false)}
       />
       <aside
         role="dialog"
         aria-modal="true"
         aria-label={t("cart.title", "Warenkorb")}
-        className={`absolute right-0 top-0 h-full w-full max-w-md overflow-y-auto bg-white shadow-2xl transition-transform duration-200 ${
-          open ? "translate-x-0" : "translate-x-full"
-        }`}
+        className="absolute right-0 top-0 h-full w-full max-w-md overflow-y-auto bg-white shadow-2xl"
       >
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
           <h2 className="text-xl font-black">

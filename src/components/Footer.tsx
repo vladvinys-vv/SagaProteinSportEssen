@@ -42,14 +42,14 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li><Link to="/imprint" className="hover:text-white transition-colors">{t("footer.terms")}</Link></li>
               <li><Link to="/privacy" className="hover:text-white transition-colors">{t("footer.privacy")}</Link></li>
-              <li className="text-xs text-gray-500">
+              <li className="text-xs text-gray-400">
                 {t("footer.tax_id", "USt-ID: DE123456789")}
               </li>
             </ul>
           </div>
         </div>
 
-        <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-500">
+        <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
           <p>{t("footer.copyright", { year: new Date().getFullYear() })}</p>
         </div>
       </div>

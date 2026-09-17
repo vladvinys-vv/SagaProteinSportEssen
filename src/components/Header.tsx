@@ -49,6 +49,7 @@ export default function Header() {
 
           <div className="flex items-center space-x-4">
             <button
+              type="button"
               onClick={() => (
                 document.dispatchEvent(new CustomEvent("open-cart-drawer"))
               )}
@@ -81,6 +82,7 @@ export default function Header() {
             </div>
 
             <button
+              type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden p-2 text-gray-600"
               aria-label={t("nav.menu")}

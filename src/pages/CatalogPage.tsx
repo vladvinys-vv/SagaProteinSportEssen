@@ -71,7 +71,12 @@ function ProductCard({ product }: { product: Product }) {
         <button
           type="button"
           disabled={isOut}
-          onClick={() => primaryVariant && addItem(product, primaryVariant)}
+          onClick={() => {
+            if (primaryVariant) {
+              addItem(product, primaryVariant);
+              document.dispatchEvent(new CustomEvent("open-cart-drawer"));
+            }
+          }}
           className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400"
           aria-label={`${t("products.add_to_cart", "In den Warenkorb")}: ${product.name}`}
         >
@@ -193,7 +198,8 @@ export default function CatalogPage() {
       ) : filteredProducts.length > 0 ? (
         <>
           <p className="mb-4 text-sm text-gray-500" aria-live="polite">
-            {filteredProducts.length} {t("products.results", "Produkte")}
+            {filteredProducts.length}{" "}
+            {t("products.results", { count: filteredProducts.length })}
           </p>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {filteredProducts.map((product) => (

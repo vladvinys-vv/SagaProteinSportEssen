@@ -21,9 +21,9 @@ export default function LanguageSwitcher() {
   return (
     <div className="relative inline-block">
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
-        type="button"
         aria-haspopup="true"
         aria-expanded={isOpen}
       >
@@ -53,6 +53,7 @@ export default function LanguageSwitcher() {
             {languages.map((lang) => (
               <li key={lang.code}>
                 <button
+                  type="button"
                   onClick={() => switchLanguage(lang.code)}
                   className={`flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-brand-50 hover:text-brand-600 text-left ${
                     i18n.language === lang.code

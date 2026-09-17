@@ -1,4 +1,6 @@
 import i18next from "i18next";
+import deTranslation from "./locales/de/translation.json";
+import enTranslation from "./locales/en/translation.json";
 
 export const changeLanguage = async (lng: string) => {
   await i18next.changeLanguage(lng);
@@ -28,29 +30,14 @@ export const initI18n = async () => {
   if (!i18next.isInitialized) {
     const { initReactI18next } = await import("react-i18next");
 
-    const resources: Record<string, Record<string, any>> = {};
-    const languages = ["de", "en"];
-    const namespaces = ["translation", "catalog", "cart", "checkout", "legal"];
-
-    for (const lang of languages) {
-      resources[lang] = {};
-      for (const ns of namespaces) {
-        try {
-          const module = await import(
-            /* @vite-ignore */ `./locales/${lang}/${ns}.json`
-          );
-          resources[lang][ns] = module.default || module;
-        } catch {
-          resources[lang][ns] = {};
-        }
-      }
-    }
-
     await i18next.use(initReactI18next).init({
-      resources,
+      resources: {
+        de: { translation: deTranslation },
+        en: { translation: enTranslation },
+      },
       lng: getInitialLanguage(),
       fallbackLng: "de",
-      ns: namespaces,
+      ns: ["translation"],
       defaultNS: "translation",
       interpolation: { escapeValue: false },
       react: { useSuspense: false },
