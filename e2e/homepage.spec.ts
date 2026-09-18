@@ -32,4 +32,41 @@ test.describe("Форма", () => {
     await expect(page).toHaveURL(/\/profile$/);
     await expect(page.getByRole("heading", { name: "Твои параметры" })).toBeVisible();
   });
+
+  test("регистрирует PWA manifest и service worker", async ({ page }) => {
+    await page.goto("/");
+    const manifest = await page.evaluate(async () => {
+      const response = await fetch("/manifest.webmanifest");
+      return { ok: response.ok, data: await response.json() };
+    });
+    expect(manifest.ok).toBe(true);
+    expect(manifest.data.display).toBe("standalone");
+    expect(manifest.data.start_url).toBe("/");
+    await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
+    await page.reload({ waitUntil: "networkidle" });
+    await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
+    expect(await page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+  });
+
+  test("открывается offline после первичной загрузки", async ({ page, context }) => {
+    await page.goto("/");
+    await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
+    await page.reload({ waitUntil: "networkidle" });
+    await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
+    await context.setOffline(true);
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { name: "Держи ритм" })).toBeVisible();
+    await context.setOffline(false);
+  });
+
+  test("не имеет горизонтального overflow на мобильном viewport", async ({ browser }) => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    const page = await context.newPage();
+    await page.goto("/");
+    const closeButton = page.getByRole("button", { name: "Закрыть" });
+    if (await closeButton.count()) await closeButton.click();
+    await expect(page.getByRole("navigation", { name: "Основная навигация" })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    await context.close();
+  });
 });
