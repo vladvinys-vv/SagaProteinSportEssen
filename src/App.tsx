@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Link, NavLink } from "react-router";
+import { BrowserRouter, Routes, Route } from "react-router";
 import { useTranslation } from "react-i18next";
 import { CartProvider } from "@/features/cart/context/CartContext";
 import { ProductProvider } from "@/features/catalog/context/ProductContext";

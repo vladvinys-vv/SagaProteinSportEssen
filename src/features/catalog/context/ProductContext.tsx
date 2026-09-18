@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
+import { MOCK_PRODUCTS } from "@/data/products";
 import { Product } from "@/types";
 
 interface ProductContextType {
@@ -16,17 +17,26 @@ export function ProductProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // TODO: Replace with real API call
-    // Simulate loading delay
-    setTimeout(() => {
-      setProducts([]);
+    let active = true;
+    setLoading(true);
+    setError(null);
+
+    const timer = setTimeout(() => {
+      if (!active) return;
+      setProducts(MOCK_PRODUCTS);
       setLoading(false);
-    }, 500);
+    }, 250);
+
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
   }, []);
 
-  const getProductBySlug = (slug: string) => {
-    return products.find((p) => p.slug === slug);
-  };
+  const getProductBySlug = useCallback(
+    (slug: string) => products.find((product) => product.slug === slug),
+    [products]
+  );
 
   return (
     <ProductContext.Provider value={{ products, loading, error, getProductBySlug }}>
@@ -54,17 +64,18 @@ export function useProduct(slug: string) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setLoading(true);
-    const found = ctx.getProductBySlug(slug);
-    if (found) {
-      setProduct(found);
+    if (ctx.loading) {
+      setProduct(undefined);
       setError(null);
-    } else {
-      setError("Product not found");
+      setLoading(true);
+      return;
     }
+
+    const found = ctx.getProductBySlug(slug);
+    setProduct(found);
+    setError(found ? null : "Product not found");
     setLoading(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug]);
+  }, [ctx.getProductBySlug, ctx.loading, slug]);
 
   return { product, loading, error };
 }
