@@ -1827,6 +1827,271 @@ details ol {
   margin-bottom: 1px;
 }
 
+.recovery-plan {
+  border-color: rgba(255, 179, 107, 0.34);
+  background: linear-gradient(145deg, rgba(52, 38, 25, 0.72), rgba(19, 30, 41, 0.96));
+}
+
+.recovery-grid {
+  display: grid;
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.plan-tabs,
+.filter-control {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.plan-tabs button,
+.filter-control select {
+  min-height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: rgba(9, 14, 20, 0.42);
+  padding: 0 10px;
+  color: var(--muted-strong);
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.plan-tabs button.is-active,
+.filter-control select:focus {
+  border-color: rgba(125, 211, 168, 0.5);
+  color: var(--green);
+}
+
+.plan-detail {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(9, 14, 20, 0.3);
+  padding: 12px;
+}
+
+.plan-detail h3 {
+  margin-top: 9px;
+  font-size: 0.86rem;
+}
+
+.plan-detail p {
+  margin-top: 4px;
+  font-size: 0.68rem;
+}
+
+.plan-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 11px;
+}
+
+.plan-actions .button {
+  min-height: 34px;
+  padding: 0 9px;
+  font-size: 0.62rem;
+}
+
+.filter-control {
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.filter-control select {
+  width: auto;
+  min-width: 150px;
+}
+
+.section-intro-text {
+  margin: -4px 0 13px;
+  font-size: 0.7rem;
+}
+
+.recommendation-card {
+  border-color: var(--border);
+}
+
+.recommendation-card .product-top {
+  align-items: flex-start;
+}
+
+.recommendation-card .button {
+  min-height: 32px;
+  padding: 0 8px;
+  font-size: 0.6rem;
+}
+
+.button.is-selected {
+  border-color: rgba(125, 211, 168, 0.5);
+  color: var(--green);
+  background: rgba(125, 211, 168, 0.1);
+}
+
+.impact-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 14px;
+  border: 1px dashed rgba(255, 179, 107, 0.35);
+  border-radius: 11px;
+  background: rgba(255, 179, 107, 0.07);
+  padding: 10px;
+  color: var(--muted-strong);
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
+.impact-note svg {
+  flex: 0 0 auto;
+  color: var(--orange);
+}
+
+.impact-note strong {
+  color: var(--text);
+}
+
+.program-constructor {
+  display: grid;
+  gap: 12px;
+}
+
+.constructor-fields {
+  display: grid;
+  gap: 10px;
+}
+
+.constructor-days {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 3px;
+}
+
+.constructor-day {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--bg-card);
+  padding: 4px;
+}
+
+.constructor-day button:first-child {
+  min-height: 32px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  padding: 0 9px;
+  color: var(--muted-strong);
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.constructor-day.is-active {
+  border-color: rgba(125, 211, 168, 0.5);
+}
+
+.constructor-day.is-active button:first-child {
+  color: var(--green);
+  background: rgba(125, 211, 168, 0.1);
+}
+
+.constructor-day .icon-button {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+}
+
+.constructor-exercises {
+  display: grid;
+  gap: 7px;
+  margin-top: 4px;
+}
+
+.constructor-exercise {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  background: rgba(9, 14, 20, 0.25);
+  padding: 9px 10px;
+}
+
+.constructor-exercise > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.constructor-exercise small {
+  font-size: 0.63rem;
+}
+
+.constructor-form {
+  margin-top: 0;
+}
+
+.constructor-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.66rem;
+  line-height: 1.45;
+}
+
+.analytics-overview {
+  display: grid;
+  gap: 10px;
+}
+
+.diet-option {
+  display: grid;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(9, 14, 20, 0.35);
+  padding: 9px 10px;
+  color: var(--text);
+  text-decoration: none;
+  text-align: left;
+}
+
+.diet-option:hover {
+  border-color: rgba(125, 211, 168, 0.4);
+}
+
+.diet-option span {
+  color: var(--muted-strong);
+  font-size: 0.7rem;
+}
+
+.diet-option strong {
+  color: var(--green);
+  font-size: 0.64rem;
+}
+
+.protein-density-summary > strong {
+  color: var(--purple);
+}
+
+.alcohol-impact-watch {
+  border-color: rgba(255, 179, 107, 0.3);
+}
+
+.alcohol-impact-risk {
+  border-color: rgba(255, 113, 128, 0.42);
+  background: rgba(255, 113, 128, 0.07);
+}
+
+.alcohol-impact-risk svg {
+  color: #ff7180;
+}
+
 @media (min-width: 620px) {
   .main-content {
     padding-right: 22px;
@@ -1835,6 +2100,10 @@ details ol {
 
   .summary-grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+
+  .summary-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
 
   .two-column {

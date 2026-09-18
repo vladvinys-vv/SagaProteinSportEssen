@@ -4,7 +4,11 @@ export type ActivityState = "lying" | "sitting" | "standing" | "training";
 export type MealType = "breakfast" | "lunch" | "dinner" | "snack";
 export type Currency = "RUB" | "USD" | "EUR";
 export type NutritionSource = "database" | "barcode" | "custom" | "preset";
-export type ProgramType = "fiveThreeOne" | "juggernaut" | "ppl" | "startingStrength";
+export type ProgramType = "fiveThreeOne" | "juggernaut" | "ppl" | "startingStrength" | "custom";
+export type ProgramMode = "strength" | "hypertrophy" | "general";
+export type AlcoholProgressStatus = "none" | "watch" | "risk";
+export type PriceCategory = "budget" | "medium" | "premium";
+export type NutritionFocus = "protein" | "balanced" | "light";
 
 export interface Profile {
   completed: boolean;
@@ -132,6 +136,7 @@ export interface WorkoutProgram {
   id: string;
   name: string;
   type: ProgramType;
+  mode?: ProgramMode;
   days: WorkoutDay[];
   trainingMaxes?: Record<string, number>;
   notes: string;
@@ -191,6 +196,78 @@ export interface MacroTargets {
   fat: number;
   carbs: number;
   sugar: number;
+}
+
+export interface CardioOption {
+  label: string;
+  met: number;
+  minutes: number;
+}
+
+export interface DeficitPlanOption {
+  mode: "strict" | "soft";
+  days: number;
+  dailyDeficit: number;
+  targetCalories: number;
+  meal: string;
+  mealCalories: number;
+  mealProtein: number;
+}
+
+export interface RecoveryPlan {
+  cardio: CardioOption[];
+  strict: DeficitPlanOption;
+  soft: DeficitPlanOption;
+}
+
+export interface FoodRecommendation {
+  food: Food;
+  priceCategory: PriceCategory;
+  score: number;
+  reason: string;
+}
+
+export interface RecipeRecommendation {
+  recipe: Recipe;
+  matchedFoodIds: string[];
+  score: number;
+  reason: string;
+}
+
+export interface AlcoholImpact {
+  percentOfTarget: number;
+  remainingCalories: number;
+  remainingProtein: number;
+  progressEffect: AlcoholProgressStatus;
+  progressMessage: string;
+}
+
+export interface StreakReward {
+  milestone: 3 | 7 | 14;
+  name: string;
+  baseCalories: number;
+  baseProtein: number;
+  portionFactor: number;
+  calories: number;
+  protein: number;
+  fitsPlan: boolean;
+  note: string;
+}
+
+export interface ProteinAdherence {
+  rate: number;
+  loggedDays: number;
+  compliantDays: number;
+  averageProtein: number;
+}
+
+export interface PeriodNutritionSummary {
+  loggedDays: number;
+  averageCalories: number | null;
+  averageProtein: number | null;
+  averageWeight: number | null;
+  proteinCompliantDays: number;
+  proteinAdherence: number;
 }
 
 export interface ActivityBreakdown {

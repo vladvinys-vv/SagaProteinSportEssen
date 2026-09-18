@@ -7,8 +7,19 @@ import type {
   Goal,
   MacroTargets,
   MealEntry,
+  PeriodNutritionSummary,
   PriceEntry,
+  PriceCategory,
   Profile,
+  Recipe,
+  RecoveryPlan,
+  Food,
+  FoodRecommendation,
+  NutritionFocus,
+  ProteinAdherence,
+  RecipeRecommendation,
+  AlcoholImpact,
+  StreakReward,
   WorkoutLog,
   WorkoutProgram,
   WorkoutSet,
@@ -45,6 +56,102 @@ export const calculateDailyTotals = (meals: MealEntry[], alcohol: AlcoholEntry[]
   return { ...food, calories: food.calories + alcoholCalories, alcoholCalories };
 };
 export const calculateCardioMinutes = (excessCalories: number, weightKg: number, met: number): number => excessCalories <= 0 || weightKg <= 0 ? 0 : Math.max(5, Math.round(excessCalories / ((met * 3.5 * weightKg) / 200)));
+export const calculateRecoveryPlan = (excessCalories: number, weightKg: number, targetCalories: number): RecoveryPlan | null => {
+  if (excessCalories <= 0 || weightKg <= 0) return null;
+  const strictDays = Math.min(2, Math.max(1, Math.ceil(excessCalories / 500)));
+  const softDays = Math.min(2, Math.max(1, Math.ceil(excessCalories / 250)));
+  return {
+    cardio: [
+      { label: "Ходьба", met: 3.5, minutes: calculateCardioMinutes(excessCalories, weightKg, 3.5) },
+      { label: "Велосипед", met: 7, minutes: calculateCardioMinutes(excessCalories, weightKg, 7) },
+      { label: "Бег", met: 10, minutes: calculateCardioMinutes(excessCalories, weightKg, 10) },
+    ],
+    strict: { mode: "strict", days: strictDays, dailyDeficit: 500, targetCalories: Math.max(1200, targetCalories - 500), meal: "Фруктовый салат с греческим йогуртом", mealCalories: 280, mealProtein: 20 },
+    soft: { mode: "soft", days: softDays, dailyDeficit: 250, targetCalories: Math.max(1200, targetCalories - 250), meal: "Фруктовый салат с творогом", mealCalories: 340, mealProtein: 24 },
+  };
+};
+export const getFoodRecommendations = (foods: Food[], prices: PriceEntry[], targets: MacroTargets, category: PriceCategory, focus: NutritionFocus, limit = 6): FoodRecommendation[] => {
+  const targetProteinRatio = targets.calories > 0 ? targets.protein * 4 / targets.calories : 0;
+  const targetFatRatio = targets.calories > 0 ? targets.fat * 9 / targets.calories : 0;
+  return foods.map((food) => {
+    const priceCategory = getProductPriceCategory(prices, food.id) ?? "medium";
+    const proteinRatio = food.calories > 0 ? food.protein * 4 / food.calories : 0;
+    const fatRatio = food.calories > 0 ? food.fat * 9 / food.calories : 0;
+    const proteinDensity = food.calories > 0 ? food.protein / food.calories : 0;
+    const macroDistance = Math.abs(proteinRatio - targetProteinRatio) + Math.abs(fatRatio - targetFatRatio);
+    const score = focus === "protein" ? proteinDensity * 100 + food.protein * 0.25 - macroDistance * 12 : focus === "light" ? Math.max(0, 80 - food.calories / 8) + proteinDensity * 35 - macroDistance * 8 : 100 - macroDistance * 35 + proteinDensity * 20;
+    const reason = focus === "protein" ? `${food.protein.toFixed(1)} г белка на 100 ${food.unit}` : focus === "light" ? `${food.calories} ккал / 100 ${food.unit}, лёгкая база` : "ближе всего к балансу цели";
+    return { food, priceCategory, score, reason };
+  }).filter((item) => item.priceCategory === category).sort((a, b) => b.score - a.score).slice(0, limit);
+};
+export const getRecipeRecommendations = (recipes: Recipe[], selectedFoodIds: string[], targets: MacroTargets, focus: NutritionFocus, limit = 4): RecipeRecommendation[] => {
+  const selected = new Set(selectedFoodIds);
+  const targetProteinRatio = targets.calories > 0 ? targets.protein * 4 / targets.calories : 0;
+  return recipes.map((recipe) => {
+    const matchedFoodIds = recipe.foodIds.filter((foodId) => selected.has(foodId));
+    const proteinRatio = recipe.calories > 0 ? recipe.protein * 4 / recipe.calories : 0;
+    const macroDistance = Math.abs(proteinRatio - targetProteinRatio);
+    const matchScore = selected.size ? matchedFoodIds.length / selected.size : 0.25;
+    const focusScore = focus === "protein" ? recipe.protein * 0.8 : focus === "light" ? Math.max(0, 100 - recipe.calories / 8) : 80 - macroDistance * 20;
+    const score = matchScore * 70 + focusScore - macroDistance * 8;
+    const reason = matchedFoodIds.length ? `совпадает с ${matchedFoodIds.length} выбранным продуктом` : focus === "protein" ? "высокий белок" : "подходит под текущую цель";
+    return { recipe, matchedFoodIds, score, reason };
+  }).sort((a, b) => b.score - a.score).slice(0, limit);
+};
+export const getAlcoholImpact = (alcoholCalories: number, targetCalories: number, targetProtein: number, consumedProtein: number, goal: Goal = "maintain"): AlcoholImpact => {
+  const percentOfTarget = targetCalories > 0 ? alcoholCalories / targetCalories : 0;
+  const progressEffect: AlcoholImpact["progressEffect"] = alcoholCalories <= 0 ? "none" : percentOfTarget >= 0.15 ? "risk" : "watch";
+  const goalLabel = goal === "cut" ? "сушку" : goal === "gain" ? "набор" : goal === "recomp" ? "рекомпозицию" : "поддержание";
+  const progressMessage = alcoholCalories <= 0
+    ? "Алкоголь не учтён — на цель не влияет."
+    : progressEffect === "risk"
+      ? `Алкоголь занимает ${Math.round(percentOfTarget * 100)}% цели и может замедлить ${goalLabel}: калории уже получены, а белок не заменён.`
+      : `Алкоголь занимает ${Math.round(percentOfTarget * 100)}% цели и сокращает запас для ${goalLabel}.`;
+  return {
+    percentOfTarget,
+    remainingCalories: targetCalories - alcoholCalories,
+    remainingProtein: targetProtein - consumedProtein,
+    progressEffect,
+    progressMessage,
+  };
+};
+export const getProteinAdherence = (meals: MealEntry[], targetProtein: number, startDaysAgo: number, endDaysAgo = 0): ProteinAdherence => {
+  const days = Array.from({ length: startDaysAgo - endDaysAgo + 1 }, (_, index) => daysAgoKey(startDaysAgo - index));
+  const logged = days.map((date) => ({ date, totals: calculateDailyTotals(meals, [], date) })).filter((day) => day.totals.calories > 0);
+  const compliantDays = logged.filter((day) => day.totals.protein >= targetProtein).length;
+  const averageProtein = logged.length ? logged.reduce((total, day) => total + day.totals.protein, 0) / logged.length : 0;
+  return { rate: logged.length ? compliantDays / logged.length : 0, loggedDays: logged.length, compliantDays, averageProtein };
+};
+export const getPeriodNutritionSummary = (meals: MealEntry[], alcohol: AlcoholEntry[], weights: AppState["weights"], targets: MacroTargets, startDaysAgo: number, endDaysAgo = 0): PeriodNutritionSummary => {
+  const days = Array.from({ length: startDaysAgo - endDaysAgo + 1 }, (_, index) => daysAgoKey(startDaysAgo - index));
+  const daySet = new Set(days);
+  const logged = days.map((date) => calculateDailyTotals(meals, alcohol, date)).filter((totals) => totals.calories > 0);
+  const weightSamples = weights.filter((entry) => daySet.has(entry.date));
+  const protein = getProteinAdherence(meals, targets.protein, startDaysAgo, endDaysAgo);
+  return {
+    loggedDays: logged.length,
+    averageCalories: logged.length ? logged.reduce((total, totals) => total + totals.calories, 0) / logged.length : null,
+    averageProtein: logged.length ? logged.reduce((total, totals) => total + totals.protein, 0) / logged.length : null,
+    averageWeight: weightSamples.length ? weightSamples.reduce((total, entry) => total + entry.weightKg, 0) / weightSamples.length : null,
+    proteinCompliantDays: protein.compliantDays,
+    proteinAdherence: protein.rate,
+  };
+};
+export const getStreakReward = (streak: number, targets: MacroTargets, totals: DailyTotals): StreakReward | null => {
+  const milestone = streak >= 14 ? 14 : streak >= 7 ? 7 : streak >= 3 ? 3 : null;
+  if (!milestone) return null;
+  const options: Record<StreakReward["milestone"], Omit<StreakReward, "milestone" | "portionFactor" | "calories" | "protein" | "fitsPlan" | "note">> = {
+    3: { name: "Ягоды с греческим йогуртом", baseCalories: 220, baseProtein: 20 },
+    7: { name: "Творог с ягодами и орехами", baseCalories: 300, baseProtein: 25 },
+    14: { name: "Боул с курицей и рисом", baseCalories: 450, baseProtein: 40 },
+  };
+  const option = options[milestone];
+  const remainingCalories = targets.calories - totals.calories;
+  const remainingProtein = targets.protein - totals.protein;
+  const portionFactor = remainingCalories > 0 && remainingProtein > 0 ? Math.min(1, remainingCalories / option.baseCalories, remainingProtein / option.baseProtein) : 0;
+  const fitsPlan = portionFactor >= 0.5;
+  return { ...option, milestone, portionFactor, calories: Math.round(option.baseCalories * portionFactor), protein: Math.round(option.baseProtein * portionFactor), fitsPlan, note: fitsPlan ? "порция вписывается в остаток дня" : "сегодня план заполнен — перенесите награду на следующий день" };
+};
 export const getSortedWeightEntries = (weights: AppState["weights"]) => [...weights].sort((a, b) => a.date.localeCompare(b.date));
 export const getSevenDayAverage = (weights: AppState["weights"], endDate: string): number | null => {
   const end = new Date(`${endDate}T12:00:00`);
@@ -111,6 +218,20 @@ export const getPriceCategory = (entries: PriceEntry[], entryId?: string): "budg
   const position = matches.findIndex(({ entry }) => entry.id === entryId) / (matches.length - 1);
   return position <= 0.33 ? "budget" : position >= 0.67 ? "premium" : "medium";
 };
+export const getProductPriceCategory = (entries: PriceEntry[], productId?: string): PriceCategory | null => {
+  if (!productId) return null;
+  const cheapestByProduct = new Map<string, number>();
+  entries.filter((entry) => entry.productId).forEach((entry) => {
+    const price = getNormalizedPrice(entry);
+    const current = cheapestByProduct.get(entry.productId!);
+    if (current === undefined || price < current) cheapestByProduct.set(entry.productId!, price);
+  });
+  const productPrices = [...cheapestByProduct].map(([id, price]) => ({ id, price })).sort((a, b) => a.price - b.price);
+  if (!productPrices.some(({ id }) => id === productId)) return null;
+  if (productPrices.length === 1) return "medium";
+  const position = productPrices.findIndex(({ id }) => id === productId) / (productPrices.length - 1);
+  return position <= 0.33 ? "budget" : position >= 0.67 ? "premium" : "medium";
+};
 export const getPriceCategoriesByProduct = (entries: PriceEntry[], productId?: string): "budget" | "medium" | "premium" | null => {
   if (!productId) return null;
   const matches = entries.filter((entry) => entry.productId === productId).map((entry) => ({ entry, price: getNormalizedPrice(entry) })).sort((a, b) => a.price - b.price);
@@ -129,6 +250,8 @@ export const getNextWorkoutRecommendation = (program: WorkoutProgram, log?: Work
     if (program.type === "startingStrength") nextWeight = currentWeight + (currentWeight < 100 ? 2.5 : 5);
     else if (program.type === "ppl") { const target = Number(exercise.reps.split("–").at(-1) ?? "8"); nextWeight = sets.length > 0 && sets.every((set) => set.reps >= target) ? currentWeight + 2.5 : currentWeight; }
     else if (program.type === "juggernaut") nextWeight = sets.length > 0 && (sets.at(-1)?.rpe ?? 10) <= 8 ? currentWeight + 2.5 : currentWeight;
+    else if (program.type === "custom" && program.mode === "hypertrophy") { const target = Number(exercise.reps.split("–").at(-1) ?? "8"); nextWeight = sets.length > 0 && sets.every((set) => set.reps >= target) ? currentWeight + 2.5 : currentWeight; }
+    else if (program.type === "custom") nextWeight = sets.length > 0 && (sets.at(-1)?.rpe ?? 10) <= 8 ? currentWeight + 2.5 : currentWeight;
     else nextWeight = Math.max(currentWeight + 2.5, (program.trainingMaxes?.[exercise.name] ?? currentWeight) * 0.9);
     result[exercise.name] = Math.round(nextWeight * 2) / 2;
     return result;
