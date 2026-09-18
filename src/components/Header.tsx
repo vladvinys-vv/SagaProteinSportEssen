@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Link, NavLink, useLocation } from "react-router";
+import { Menu, ShoppingBag, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useCart } from "@/features/cart";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -24,7 +25,7 @@ export default function Header() {
             </Link>
           </div>
 
-          <nav className="hidden md:flex space-x-1">
+          <nav className="hidden md:flex space-x-1" aria-label={t("nav.main", "Hauptnavigation")}>
             {[
               { path: "/", label: t("nav.home") },
               { path: "/products", label: t("nav.products") },
@@ -49,28 +50,14 @@ export default function Header() {
 
           <div className="flex items-center space-x-4">
             <button
-              onClick={() => (
-                document.dispatchEvent(new CustomEvent("open-cart-drawer"))
-              )}
-              className="relative p-2 text-gray-600 hover:text-brand-600"
+              type="button"
+              onClick={() => document.dispatchEvent(new CustomEvent("open-cart-drawer"))}
+              className="relative rounded-xl p-2 text-gray-600 transition hover:bg-brand-50 hover:text-brand-700"
               aria-label={t("nav.cart")}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 3h2l.89 2.29M7 12h10l-.89 2.29M7 12L5 5M7 12l-2 5m0 0h14m-5 2a2 2 0 100 4 2 2 0 000-4zm-6 2a2 2 0 100 4 2 2 0 000-4z"
-                />
-              </svg>
+              <ShoppingBag className="h-6 w-6" />
               {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 bg-brand-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-[11px] font-black text-white shadow-sm">
                   {totalItems}
                 </span>
               )}
@@ -81,33 +68,13 @@ export default function Header() {
             </div>
 
             <button
+              type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-gray-600"
+              className="rounded-xl p-2 text-gray-600 transition hover:bg-brand-50 hover:text-brand-700 md:hidden"
               aria-label={t("nav.menu")}
               aria-expanded={mobileMenuOpen}
             >
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                {mobileMenuOpen ? (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                ) : (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                )}
-              </svg>
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
         </div>
@@ -118,7 +85,7 @@ export default function Header() {
           mobileMenuOpen ? "max-h-64" : "max-h-0"
         }`}
       >
-        <nav className="flex flex-col space-y-1 px-4 py-2">
+        <nav className="flex flex-col space-y-1 px-4 py-2" aria-label={t("nav.mobile", "Mobile Navigation")}>
           {[
             { path: "/", label: t("nav.home") },
             { path: "/products", label: t("nav.products") },

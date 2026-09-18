@@ -9,7 +9,7 @@ export default function PrivacyPage() {
       <h2>Datenschutzerklärung</h2>
       <p>
         Wir nehmen den Schutz Ihrer personenbezogenen Daten sehr ernst. Ihre
-        Daten werden ausschließlich zur Bearlung Ihrer Bestellung verwendet
+        Daten werden ausschließlich zur Bearbeitung Ihrer Bestellung verwendet
         und nicht an Dritte verkauft.
       </p>
       <h3>Cookies</h3>
