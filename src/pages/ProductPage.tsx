@@ -18,12 +18,14 @@ export default function ProductPage() {
   const [selectedVariantId, setSelectedVariantId] = useState<string>();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   useEffect(() => {
     const firstAvailable = product?.variants.find((variant) => variant.inStock) || product?.variants[0];
     setSelectedVariantId(firstAvailable?.id);
     setQuantity(1);
     setAdded(false);
+    setSelectedImageIndex(0);
   }, [product]);
 
   const selectedVariant = product?.variants.find((variant) => variant.id === selectedVariantId);
@@ -75,7 +77,12 @@ export default function ProductPage() {
 
       <div className="grid gap-10 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
         <div className="rounded-3xl border border-gray-200 bg-white p-4 shadow-sm md:p-6">
-          <ProductImage product={product} className="aspect-square w-full rounded-2xl" priority />
+          <ProductImage
+            product={product}
+            src={product.images[selectedImageIndex]}
+            className="aspect-square w-full rounded-2xl"
+            priority
+          />
           <div className="mt-4 flex gap-3">
             {product.images.map((image, index) => (
               <button

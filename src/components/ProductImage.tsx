@@ -4,19 +4,22 @@ import { Product } from "@/types";
 
 interface ProductImageProps {
   product: Product;
+  src?: string;
   className?: string;
   priority?: boolean;
 }
 
 export default function ProductImage({
   product,
+  src,
   className = "aspect-square w-full",
   priority = false,
 }: ProductImageProps) {
   const [failed, setFailed] = useState(false);
   const initial = product.name.trim().charAt(0).toUpperCase();
+  const imageSrc = src || product.images[0];
 
-  if (failed || product.images.length === 0) {
+  if (failed || !imageSrc) {
     return (
       <div className={`flex items-center justify-center bg-gradient-to-br from-brand-100 to-brand-50 ${className}`}>
         <div className="flex flex-col items-center gap-2 text-brand-500" aria-hidden="true">
@@ -29,7 +32,7 @@ export default function ProductImage({
 
   return (
     <img
-      src={product.images[0]}
+      src={imageSrc}
       alt={product.name}
       className={className}
       loading={priority ? "eager" : "lazy"}
