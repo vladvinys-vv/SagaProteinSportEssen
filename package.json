@@ -1,7 +1,7 @@
 {
-  "name": "sagaproteinsportessen",
+  "name": "forma-fitness",
   "version": "1.0.0",
-  "description": "Protein Sports Nutrition E-Commerce Platform for the German market",
+  "description": "Локальное приложение для учёта питания, тренировок и прогресса",
   "private": true,
   "scripts": {
     "dev": "vite",
@@ -15,23 +15,18 @@
     "test:ui": "vitest --ui",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:accessibility": "playwright test --grep accessibility",
     "prepare": "husky install"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
-    "i18next": "^25.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-i18next": "^15.0.0",
     "react-router": "^7.0.0"
   },
   "devDependencies": {
-    "@playwright/experimental-ct-react": "1.62.1",
-    "@playwright/test": "1.62.1",
-    "@tailwindcss/vite": "4.3.3",
+    "@playwright/test": "^1.50.0",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.0",
     "@testing-library/react": "^16.0.0",
@@ -39,13 +34,10 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^5.0.0",
-    "axe-core": "^4.8.0",
-    "axe-playwright": "^1.0.0",
     "biome": "^0.3.0",
     "happy-dom": "^20.14.5",
     "husky": "^9.0.0",
     "lucide-react": "^1.45.0",
-    "tailwindcss": "4.3.3",
     "typescript": "^5.6.0",
     "vite": "^6.0.0",
     "vitest": "^3.0.0"
