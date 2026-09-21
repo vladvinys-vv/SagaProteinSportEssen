@@ -4,13 +4,18 @@ import App from "@/App";
 import "@/styles/index.css";
 import { initI18n } from "@/i18n";
 
-async function bootstrap() {
-  await initI18n();
-  createRoot(document.getElementById("root")!).render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>,
-  );
+const root = document.getElementById("root");
+
+if (!root) {
+  throw new Error("Root element was not found");
 }
 
-bootstrap();
+createRoot(root).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+);
+
+void initI18n().catch((error) => {
+  console.error("[v0] i18n initialization failed", error);
+});
