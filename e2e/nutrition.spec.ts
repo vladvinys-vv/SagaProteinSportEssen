@@ -38,7 +38,7 @@ test.describe("Форма — питание", () => {
     await alcoholCard.getByRole("button", { name: "Добавить напиток" }).click();
 
     await expect(page.locator(".nutrition-mini")).toContainText("ккал");
-    await expect(page.getByRole("button", { name: "Удалить Пильзнер 0,5 л" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Удалить Astra Pils 0,5 л" })).toBeVisible();
   });
 
   test("добавляет напиток пресетом в один тап", async ({ page }) => {

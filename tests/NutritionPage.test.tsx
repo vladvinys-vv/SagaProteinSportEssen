@@ -93,7 +93,7 @@ describe("страница питания", () => {
     const summary = document.querySelector(".nutrition-mini");
     expect(summary).not.toBeNull();
     expect(within(summary as HTMLElement).getByText("231 ккал")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Удалить Пильзнер 0,5 л" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Удалить Astra Pils 0,5 л" })).toBeInTheDocument();
   });
 });
 

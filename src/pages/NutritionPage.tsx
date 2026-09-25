@@ -18,7 +18,7 @@ function nutritionFor(food: Food, amount: number) {
 
 /** Привычные порции: тап — и напиток уже в счётчике. */
 const ALCOHOL_PRESETS = [
-  { name: "Пильзнер 0,5 л", volumeMl: 500, abv: 4.9 },
+  { name: "Astra Pils 0,5 л", volumeMl: 500, abv: 4.9 },
   { name: "Радлер 0,5 л", volumeMl: 500, abv: 2.5 },
   { name: "Красное вино 0,2 л", volumeMl: 200, abv: 13 },
   { name: "Глинтвейн 0,2 л", volumeMl: 200, abv: 10 },
@@ -37,7 +37,7 @@ export default function NutritionPage() {
   const [barcodeMessage, setBarcodeMessage] = useState("");
   const [barcodeSource, setBarcodeSource] = useState<MealEntry["source"]>("database");
   const [custom, setCustom] = useState<{ name: string; calories: number; protein: number; fat: number; carbs: number; sugar: number; unit: Food["unit"] }>({ name: "", calories: 0, protein: 0, fat: 0, carbs: 0, sugar: 0, unit: "g" });
-  const [alcohol, setAlcohol] = useState({ name: "Пильзнер 0,5 л", volumeMl: 500, abv: 4.9 });
+  const [alcohol, setAlcohol] = useState({ name: "Astra Pils 0,5 л", volumeMl: 500, abv: 4.9 });
   const [presetName, setPresetName] = useState("");
   const [presetMeal, setPresetMeal] = useState<MealType>("breakfast");
   const [priceCategory, setPriceCategory] = useState<PriceCategory>("budget");

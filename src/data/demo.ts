@@ -60,7 +60,7 @@ export const createDemoState = (): AppState => {
     meals.push(makeEntry(date, "breakfast", BASE_FOODS[0]!, 80), makeEntry(date, "breakfast", BASE_FOODS[1]!, 250), makeEntry(date, "breakfast", BASE_FOODS[2]!, 120), makeEntry(date, "lunch", BASE_FOODS[3]!, 180), makeEntry(date, "lunch", BASE_FOODS[4]!, 250), makeEntry(date, "lunch", BASE_FOODS[5]!, 120), makeEntry(date, "lunch", BASE_FOODS[6]!, 10), makeEntry(date, "dinner", BASE_FOODS[7]!, 180), makeEntry(date, "dinner", BASE_FOODS[8]!, 300), makeEntry(date, "dinner", BASE_FOODS[9]!, 150), makeEntry(date, "snack", BASE_FOODS[10]!, 40), makeEntry(date, "snack", BASE_FOODS[11]!, 150), makeEntry(date, "snack", BASE_FOODS[15]!, 50));
     if (index === 8) meals.push(makeEntry(date, "snack", BASE_FOODS[16]!, 120, { junkFood: true }));
     if (index === 2) alcohol.push({ id: `${date}-wine`, date, name: "Красное вино 0,2 л", volumeMl: 200, abv: 13, calories: Math.round(calculateAlcoholCalories(200, 13)) });
-    if (index === 9) alcohol.push({ id: `${date}-beer`, date, name: "Пильзнер 0,5 л", volumeMl: 500, abv: 4.9, calories: Math.round(calculateAlcoholCalories(500, 4.9)) });
+    if (index === 9) alcohol.push({ id: `${date}-beer`, date, name: "Astra Pils 0,5 л", volumeMl: 500, abv: 4.9, calories: Math.round(calculateAlcoholCalories(500, 4.9)) });
     if (index === 11) alcohol.push({ id: `${date}-wine`, date, name: "Красное вино 0,2 л", volumeMl: 200, abv: 13, calories: Math.round(calculateAlcoholCalories(200, 13)) });
     weights.push({ id: `weight-${date}`, date, weightKg: Math.round((78 + Math.sin(index / 3) * 0.15 + (index % 3) * 0.05) * 10) / 10 });
   }
