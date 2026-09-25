@@ -1,7 +1,7 @@
 import { Activity, ArrowRight, ClipboardCheck, Flame, Footprints, HeartPulse, Utensils } from "lucide-react";
 import { Link } from "react-router";
-import { Card, ProgressBar, SectionHeader, TrendChart } from "@/components/UI";
-import { calculateCardioMinutes, calculateMacroTargets, calculateDailyTotals, dateKey, getNoJunkStreak, getActivityBreakdown, getStreakReward } from "@/lib/calculations";
+import { Card, ProgressBar, TrendChart } from "@/components/UI";
+import { calculateCardioMinutes, calculateDailyTotals, calculateMacroTargets, dateKey, getActivityBreakdown, getNoJunkStreak, getStreakReward } from "@/lib/calculations";
 import { useAppState } from "@/state/AppContext";
 import type { ActivityState } from "@/types";
 

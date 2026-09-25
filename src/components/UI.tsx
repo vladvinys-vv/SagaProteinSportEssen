@@ -1,8 +1,22 @@
 import type { ReactNode } from "react";
 
-interface CardProps { children: ReactNode; className?: string; as?: "section" | "article" | "div"; }
-export function Card({ children, className = "", as: Component = "section" }: CardProps) {
-  return <Component className={`card ${className}`}>{children}</Component>;
+interface CardProps {
+  children: ReactNode;
+  className?: string;
+  as?: "section" | "article" | "div";
+  role?: string;
+  "aria-modal"?: boolean | "true" | "false";
+  "aria-label"?: string;
+  "aria-labelledby"?: string;
+}
+
+export function Card({
+  children,
+  className = "",
+  as: Component = "section",
+  ...aria
+}: CardProps) {
+  return <Component className={`card ${className}`} {...aria}>{children}</Component>;
 }
 
 export function SectionHeader({ eyebrow, title, action }: { eyebrow?: string; title: string; action?: ReactNode }) {
@@ -34,7 +48,7 @@ export function TrendChart({ data, unit, color = "#7dd3a8" }: { data: { label: s
       {[0.25, 0.5, 0.75].map((position) => <line key={position} x1={paddingX} x2={width - paddingX} y1={paddingY + position * (height - paddingY * 2)} y2={paddingY + position * (height - paddingY * 2)} className="chart-grid" />)}
       {area && <path d={area} fill="url(#chartFill)" />}
       {points.length > 0 && <path d={path} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
-      {points.map((point, index) => <circle key={`${point.label}-${index}`} cx={point.x} cy={point.y} r={index === points.length - 1 ? 5 : 3} fill={color} />)}
+      {points.map((point, index) => <circle key={`${point.label}-${point.x.toFixed(2)}`} cx={point.x} cy={point.y} r={index === points.length - 1 ? 5 : 3} fill={color} />)}
     </svg>
     <div className="chart-axis"><span>{data[0]?.label ?? "—"}</span><strong>{unit}</strong><span>{data.at(-1)?.label ?? "—"}</span></div>
   </div>;

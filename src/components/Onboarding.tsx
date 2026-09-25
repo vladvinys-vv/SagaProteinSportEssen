@@ -1,8 +1,8 @@
+import { Activity, Flame, Ruler, Save, UserRound, Weight, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import type { Profile } from "@/types";
-import { GOAL_CALORIE_ADJUSTMENTS, sumActivityHours } from "@/lib/calculations";
-import { Activity, Check, Flame, Ruler, Save, UserRound, X, Weight } from "lucide-react";
 import { Card } from "@/components/UI";
+import { GOAL_CALORIE_ADJUSTMENTS, sumActivityHours } from "@/lib/calculations";
+import type { Profile } from "@/types";
 
 const labels = { lying: "Лежал", sitting: "Сидел", standing: "На ногах", training: "Тренировка" } as const;
 const mets = { lying: 1, sitting: 1.3, standing: 2, training: 6 } as const;
@@ -14,7 +14,7 @@ export default function Onboarding({ profile, open, onClose, onSave }: { profile
   if (!open) return null;
   const update = <Key extends keyof Profile>(key: Key, value: Profile[Key]) => setDraft((current) => ({ ...current, [key]: value }));
   const valid = draft.weightKg > 20 && draft.weightKg < 300 && draft.heightCm > 100 && draft.heightCm < 250 && draft.age >= 12 && draft.age <= 120 && total === 24;
-  return <div className="modal-backdrop"><Card className="onboarding-modal" as="article">
+  return <div className="modal-backdrop"><Card className="onboarding-modal" as="article" role="dialog" aria-modal="true" aria-label="Настройка профиля">
     <div className="modal-header"><div><span className="eyebrow">Первый запуск</span><h2>Настроим твою норму</h2><p>Данные остаются в этом браузере. Их можно экспортировать в любой момент.</p></div><button className="icon-button" type="button" onClick={onClose} aria-label="Закрыть"><X size={20} /></button></div>
     <div className="onboarding-grid">
       <label><span><Weight size={16} /> Вес, кг</span><input type="number" min="20" max="300" step="0.1" value={draft.weightKg} onChange={(event) => update("weightKg", Number(event.target.value))} /></label>

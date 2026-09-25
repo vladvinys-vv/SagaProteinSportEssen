@@ -1,5 +1,5 @@
-import type { AlcoholEntry, AppState, Food, MealEntry, MealPreset, MealType, PriceEntry, Profile, Recipe, WeightEntry, WorkoutProgram } from "@/types";
 import { calculateAlcoholCalories, dateKey, daysAgoKey, GOAL_CALORIE_ADJUSTMENTS, scaleNutrition } from "@/lib/calculations";
+import type { AlcoholEntry, AppState, Food, MealEntry, MealPreset, MealType, PriceEntry, Profile, Recipe, WeightEntry, WorkoutProgram } from "@/types";
 
 export const BASE_FOODS: Food[] = [
   { id: "oats", name: "Овсянка", category: "Крупы", calories: 380, protein: 13, fat: 7, carbs: 62, sugar: 1, unit: "g", barcode: "100000000001" },

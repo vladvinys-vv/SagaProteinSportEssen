@@ -1,7 +1,7 @@
+import { Activity, AlertTriangle, CheckCircle2, Download, RotateCcw, ShieldCheck, TrendingUp, Upload } from "lucide-react";
 import { useRef, useState } from "react";
-import { AlertTriangle, CheckCircle2, Download, RotateCcw, ShieldCheck, TrendingUp, Upload, Activity } from "lucide-react";
 import { Card, EmptyState, ProgressBar, SectionHeader, TrendChart } from "@/components/UI";
-import { calculateDailyTotals, calculateMacroTargets, dateKey, daysAgoKey, detectPlateau, getAutoCorrection, getCalorieAdherence, getPeriodNutritionSummary, getProteinAdherence, getSortedWeightEntries } from "@/lib/calculations";
+import { calculateDailyTotals, calculateMacroTargets, calculateTargetCalories, dateKey, daysAgoKey, detectPlateau, getAutoCorrection, getCalorieAdherence, getPeriodNutritionSummary, getProteinAdherence, getSortedWeightEntries } from "@/lib/calculations";
 import { importState } from "@/lib/storage";
 import { useAppState } from "@/state/AppContext";
 
@@ -12,6 +12,7 @@ export default function AnalyticsPage() {
   const fileInput = useRef<HTMLInputElement>(null);
   const [range, setRange] = useState(14);
   const [metric, setMetric] = useState<Metric>("weight");
+  const [importMessage, setImportMessage] = useState("");
   const today = dateKey();
   const targets = calculateMacroTargets(state.profile);
   const adherence = getCalorieAdherence(state.meals, state.alcohol, targets.calories, range - 1);
@@ -26,6 +27,14 @@ export default function AnalyticsPage() {
         const totals = calculateDailyTotals(state.meals, state.alcohol, day);
         return { label: day.slice(5), value: metric === "calories" ? totals.calories : totals.protein };
       }).filter((point) => point.value > 0);
+  const applyCalorieAdjustment = (delta: number, reason: string) => {
+    const previousTarget = calculateTargetCalories(state.profile);
+    const profile = { ...state.profile, calorieAdjustment: state.profile.calorieAdjustment + delta };
+    updateState({
+      profile,
+      adjustments: [{ date: today, previousTarget, newTarget: calculateTargetCalories(profile), reason }, ...state.adjustments].slice(0, 30),
+    });
+  };
   const exportData = () => {
     const blob = new Blob([JSON.stringify({ state }, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -38,8 +47,12 @@ export default function AnalyticsPage() {
   const importData = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    const raw = await file.text();
-    try { replaceState(importState(raw)); } catch { /* invalid file */ }
+    try {
+      replaceState(importState(await file.text()));
+      setImportMessage(`Импортировано из ${file.name}`);
+    } catch (error) {
+      setImportMessage(error instanceof Error ? error.message : "Не удалось прочитать файл");
+    }
     event.target.value = "";
   };
 
@@ -63,11 +76,13 @@ export default function AnalyticsPage() {
       <Card><SectionHeader eyebrow="Цель" title="Твои ориентиры" /><ProgressBar value={targets.protein} max={targets.protein} label="Белок" tone="protein" /><ProgressBar value={targets.fat} max={targets.fat} label="Жиры" tone="warning" /><ProgressBar value={targets.carbs} max={targets.carbs} label="Углеводы" /><div className="capability-note"><TrendingUp size={16} /><span>Целевые макросы пересчитываются при изменении профиля. Средние значения считаются только по дням с записями питания.</span></div></Card>
     </div>
 
+    <Card><SectionHeader eyebrow="История" title="Коррекции нормы" /><div className="adjustment-list">{state.adjustments.length === 0 && <EmptyState title="Коррекций пока не было" text="Здесь появятся изменения нормы калорий: авто-коррекция по динамике веса и ручные правки." />}{state.adjustments.map((entry) => <div className="adjustment-row" key={`${entry.date}-${entry.newTarget}-${entry.reason}`}><div><strong>{Math.round(entry.previousTarget)} → {Math.round(entry.newTarget)} ккал</strong><small>{entry.reason}</small></div><span>{entry.date}</span></div>)}</div></Card>
+
     <div className="two-column">
-      {plateau && <Card className="overage-card"><div className="overage-head"><AlertTriangle size={20} /><div><strong>Возможно плато</strong><p>Вес почти не меняется, а adherence остаётся высоким.</p></div></div><div className="plateau-body"><AlertTriangle size={19} /><div><strong>Изменение за неделю: {plateau.weeklyChange.toFixed(2)} кг</strong><p>Adherence за последние 14 дней: {Math.round(plateau.adherence * 100)}%. Проверь сон, шаги и точность порций.</p></div></div><div className="plateau-actions"><button type="button" onClick={() => updateState({ profile: { ...state.profile, calorieAdjustment: state.profile.calorieAdjustment - 100 } })}>−100 ккал</button><button type="button" onClick={() => updateState({ profile: { ...state.profile, steps: state.profile.steps + 1000 } })}>+1000 шагов</button></div></Card>}
-      {correction && correction.active && <Card><div className="section-heading"><div><span className="eyebrow">Авто-коррекция</span><h2>Предложение по цели</h2></div><AlertTriangle size={19} /></div><div className="correction-body"><div className="correction-number"><strong>{correction.suggestedAdjustment > 0 ? "+" : ""}{correction.suggestedAdjustment}</strong><span>ккал к текущей норме</span></div><p>Наблюдаемое изменение {correction.observedWeeklyChange.toFixed(2)} кг за неделю при ожидании {correction.expectedWeeklyChange.toFixed(2)} кг. Среднее потребление: {Math.round(correction.averageCalories)} ккал.</p><button className="button secondary" type="button" onClick={() => updateState({ profile: { ...state.profile, calorieAdjustment: state.profile.calorieAdjustment + correction.suggestedAdjustment } })}>Применить коррекцию</button></div></Card>}
+      {plateau && <Card className="overage-card"><div className="overage-head"><AlertTriangle size={20} /><div><strong>Возможно плато</strong><p>Вес почти не меняется, а adherence остаётся высоким.</p></div></div><div className="plateau-body"><AlertTriangle size={19} /><div><strong>Изменение за неделю: {plateau.weeklyChange.toFixed(2)} кг</strong><p>Adherence за последние 14 дней: {Math.round(plateau.adherence * 100)}%. Проверь сон, шаги и точность порций.</p></div></div><div className="plateau-actions"><button type="button" onClick={() => applyCalorieAdjustment(-100, "Плато: ручное снижение нормы")}>−100 ккал</button><button type="button" onClick={() => updateState({ profile: { ...state.profile, steps: state.profile.steps + 1000 } })}>+1000 шагов</button></div></Card>}
+      {correction?.active && <Card><div className="section-heading"><div><span className="eyebrow">Авто-коррекция</span><h2>Предложение по цели</h2></div><AlertTriangle size={19} /></div><div className="correction-body"><div className="correction-number"><strong>{correction.suggestedAdjustment > 0 ? "+" : ""}{correction.suggestedAdjustment}</strong><span>ккал к текущей норме</span></div><p>Наблюдаемое изменение {correction.observedWeeklyChange.toFixed(2)} кг за неделю при ожидании {correction.expectedWeeklyChange.toFixed(2)} кг. Среднее потребление: {Math.round(correction.averageCalories)} ккал.</p><button className="button secondary" type="button" onClick={() => applyCalorieAdjustment(correction.suggestedAdjustment, `Авто-коррекция: ${correction.observedWeeklyChange.toFixed(2)} кг/нед против ожидаемых ${correction.expectedWeeklyChange.toFixed(2)} кг`)}>Применить коррекцию</button></div></Card>}
       <Card><SectionHeader eyebrow="Активность" title="Ручной ввод" /><div className="capability-note"><Activity size={16} /><span>Health и Google Fit в веб-версии не подключены. MET-активность и шаги вводятся вручную в профиле и на главной.</span></div><div className="activity-editor compact"><div className="activity-total"><Activity size={20} /><div><strong>Сегодняшний профиль активности</strong><span>Сумма должна давать 24 часа</span></div><b className={Object.values(state.profile.activityHours).reduce((sum, value) => sum + value, 0) === 24 ? "is-valid" : "is-invalid"}>{Object.values(state.profile.activityHours).reduce((sum, value) => sum + value, 0).toFixed(1)} ч</b></div><div className="activity-inputs">{(["lying", "sitting", "standing", "training"] as const).map((key) => <label key={key}><span>{key === "lying" ? "Сон и отдых" : key === "sitting" ? "Сидя" : key === "standing" ? "Стоя" : "Тренировка"}</span><input type="number" min="0" max="24" step="0.5" value={state.profile.activityHours[key]} onChange={(event) => updateState({ profile: { ...state.profile, activityHours: { ...state.profile.activityHours, [key]: Math.max(0, Number(event.target.value) || 0) } } })} /></label>)}</div></div></Card>
-      <Card><SectionHeader eyebrow="Данные" title="Экспорт и сброс" /><div className="data-actions"><button type="button" onClick={exportData}><Download size={16} /> Экспорт JSON</button><button type="button" onClick={() => fileInput.current?.click()}><Upload size={16} /> Импорт</button><input ref={fileInput} type="file" accept="application/json" hidden onChange={importData} /></div><button className="button secondary full" type="button" onClick={resetState}><RotateCcw size={16} /> Сбросить локальные данные</button><div className="privacy-note"><ShieldCheck size={16} /><span>Все данные хранятся только в этом браузере. Импорт заменяет текущее состояние.</span></div></Card>
+      <Card><SectionHeader eyebrow="Данные" title="Экспорт и сброс" /><div className="data-actions"><button type="button" onClick={exportData}><Download size={16} /> Экспорт JSON</button><button type="button" onClick={() => fileInput.current?.click()}><Upload size={16} /> Импорт</button><input ref={fileInput} type="file" accept="application/json" hidden onChange={importData} /></div>{importMessage && <p className="muted" role="status">{importMessage}</p>}<button className="button secondary full" type="button" onClick={resetState}><RotateCcw size={16} /> Сбросить локальные данные</button><div className="privacy-note"><ShieldCheck size={16} /><span>Все данные хранятся только в этом браузере. Импорт заменяет текущее состояние.</span></div></Card>
     </div>
   </div>;
 }

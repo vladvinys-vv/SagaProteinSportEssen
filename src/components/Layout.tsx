@@ -1,5 +1,5 @@
-import type { FC, ReactNode } from "react";
 import { Activity, Database, ShieldCheck } from "lucide-react";
+import type { FC, ReactNode } from "react";
 import { NavLink } from "react-router";
 
 const navItems = [

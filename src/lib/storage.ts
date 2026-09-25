@@ -1,5 +1,5 @@
-import type { AppState } from "@/types";
 import { createDemoState } from "@/data/demo";
+import type { AppState } from "@/types";
 
 export const STORAGE_KEY = "forma-state-v1";
 
@@ -25,7 +25,12 @@ export const saveState = (state: AppState): void => {
 };
 
 export const importState = (raw: string): AppState => {
-  const parsed = JSON.parse(raw) as { state?: unknown };
-  if (!isAppState(parsed.state)) throw new Error("Не удалось прочитать файл данных");
+  let parsed: { state?: unknown };
+  try {
+    parsed = JSON.parse(raw) as { state?: unknown };
+  } catch {
+    throw new Error("Не удалось прочитать файл данных: это не корректный JSON");
+  }
+  if (!isAppState(parsed?.state)) throw new Error("Не удалось прочитать файл данных: неизвестный формат резервной копии");
   return parsed.state;
 };

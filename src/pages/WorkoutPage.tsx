@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, Check, Dumbbell, Plus, Save, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, EmptyState, SectionHeader } from "@/components/UI";
 import { dateKey, getNextWorkoutRecommendation } from "@/lib/calculations";
 import { useAppState } from "@/state/AppContext";
-import type { ExerciseTemplate, ProgramMode, WorkoutDay, WorkoutProgram, WorkoutSet } from "@/types";
+import type { ProgramMode, WorkoutDay, WorkoutProgram, WorkoutSet } from "@/types";
 
 const programLabels: Record<WorkoutProgram["type"], string> = {
   fiveThreeOne: "5/3/1",
@@ -13,6 +13,16 @@ const programLabels: Record<WorkoutProgram["type"], string> = {
   custom: "Пользовательская",
 };
 const modeLabels: Record<ProgramMode, string> = { strength: "Сила", hypertrophy: "Гипертрофия", general: "Общий режим" };
+
+/** Пустые строки ввода подходов для выбранного тренировочного дня. */
+const freshSets = (day?: WorkoutDay): WorkoutSet[] =>
+  (day?.exercises ?? []).map((exercise, index) => ({
+    id: `${day?.id ?? "day"}-${index}-${exercise.name}`,
+    exercise: exercise.name,
+    weightKg: 0,
+    reps: 0,
+    rpe: 8,
+  }));
 
 export default function WorkoutPage() {
   const { state, updateState } = useAppState();
@@ -36,24 +46,17 @@ export default function WorkoutPage() {
   const history = state.workoutLogs.filter((log) => log.programId === program?.id).sort((a, b) => b.date.localeCompare(a.date));
   const activeCustomDay = customDraft.days[customDraft.activeDay];
 
-  const resetSetsForDay = (currentDay?: WorkoutDay) => {
-    setSets((currentDay?.exercises ?? []).map((exercise, index) => ({
-      id: `day-set-${index}-${Date.now()}`,
-      exercise: exercise.name,
-      weightKg: 0,
-      reps: 0,
-      rpe: 8,
-    })));
-  };
-
+  // Строки ввода всегда соответствуют упражнениям выбранного дня.
+  // Уже введённые значения сохраняются, пока день и упражнения не изменились.
   useEffect(() => {
-    setDayIndex(0);
-    resetSetsForDay(program?.days[0]);
-  }, [program?.id]);
-
-  useEffect(() => {
-    resetSetsForDay(day);
-  }, [dayIndex, program?.id]);
+    const dayId = day?.id ?? "day";
+    setSets((current) =>
+      (day?.exercises ?? []).map((exercise, index) => {
+        const existing = current.find((set) => set.exercise === exercise.name && set.id.startsWith(`${dayId}-`));
+        return existing ?? { id: `${dayId}-${index}-${exercise.name}`, exercise: exercise.name, weightKg: 0, reps: 0, rpe: 8 };
+      }),
+    );
+  }, [day]);
 
   const updateProgram = (days: WorkoutDay[]) => {
     if (!program) return;
@@ -91,7 +94,7 @@ export default function WorkoutPage() {
     const completed = sets.filter((set) => set.exercise.trim() && set.weightKg > 0 && set.reps > 0);
     if (!program || !completed.length) return;
     updateState({ workoutLogs: [{ id: `workout-${Date.now()}`, date, programId: program.id, programName: program.name, sets: completed }, ...state.workoutLogs] });
-    resetSetsForDay(day);
+    setSets(freshSets(day));
   };
 
   const updateCustomDay = (dayUpdate: WorkoutDay) => {

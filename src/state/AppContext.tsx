@@ -1,8 +1,8 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import type { AppState } from "@/types";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { createEmptyState } from "@/data/demo";
 import { loadState, saveState } from "@/lib/storage";
+import type { AppState } from "@/types";
 
 interface AppContextValue {
   state: AppState;

@@ -1,16 +1,25 @@
-import React from "react";
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "@/App";
 import "@/styles/index.css";
-import { initI18n } from "@/i18n";
 
-async function bootstrap() {
-  await initI18n();
-  createRoot(document.getElementById("root")!).render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>,
-  );
+const container = document.getElementById("root");
+if (!container) throw new Error("Не найден корневой элемент #root");
+
+createRoot(container).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+);
+
+/**
+ * Регистрируем service worker: приложение должно открываться офлайн
+ * (см. public/sw.js). В окружениях без support (SSR, тесты) — молча выходим.
+ */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {
+      /* офлайн-режим недоступен — приложение продолжает работать онлайн */
+    });
+  });
 }
-
-bootstrap();

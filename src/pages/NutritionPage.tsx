@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
 import { ArrowRight, Barcode, Camera, ChevronLeft, ChevronRight, Plus, Search, Trash2, Utensils, Wine } from "lucide-react";
+import { useMemo, useState } from "react";
 import { Card, EmptyState, ProgressBar, SectionHeader } from "@/components/UI";
 import { calculateAlcoholCalories, calculateDailyTotals, calculateMacroTargets, calculateRecoveryPlan, dateKey, getAlcoholImpact, getFoodRecommendations, getNormalizedPrice, getPriceCategory, getRecipeRecommendations, scaleNutrition } from "@/lib/calculations";
 import { useAppState } from "@/state/AppContext";
