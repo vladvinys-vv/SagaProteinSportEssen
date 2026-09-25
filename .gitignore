@@ -1,10 +1,13 @@
 .DS_Store
 node_modules/
 dist/
+coverage/
 *.local
 .vscode/
 .idea/
 *.log
 playwright-report/
 test-results/
+blob-report/
+*.tsbuildinfo
 saga-*.png

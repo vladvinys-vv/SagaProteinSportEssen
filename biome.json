@@ -1,55 +1,41 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.0.0-alpha.2/schema.json",
-  "name": "sagaproteinsportessen",
-  "version": "0.1.0",
-  "language": {
-    "javascript": {
-      "formatter": {
-        "style": {
-          "lineWidth": 100,
-          "semicolons": "error",
-          "quotation": "doubleQuote",
-          "indentation": "space"
-        },
-        "source": {
-          "organizeImports": "error"
-        }
-      }
-    },
-    "typescript": {
-      "formatter": {
-        "style": {
-          "lineWidth": 100,
-          "semicolons": "error",
-          "quotation": "doubleQuote",
-          "indentation": "space"
-        }
-      }
-    }
+  "$schema": "https://biomejs.dev/schemas/2.5.14/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "includes": ["src/**/*.{ts,tsx,css}", "tests/**/*.{ts,tsx}", "e2e/**/*.ts"]
+  },
+  "formatter": {
+    "enabled": false
   },
   "linter": {
     "enabled": true,
     "rules": {
       "recommended": true,
-      "suspicious": "warn",
-      "nursery": "warn",
-      "correctness": "error",
-      "performance": "warn",
-      "style": "warn"
+      "suspicious": {
+        "noExplicitAny": "warn",
+        "noArrayIndexKey": "warn"
+      },
+      "style": {
+        "noNonNullAssertion": "off",
+        "noDescendingSpecificity": "off"
+      },
+      "a11y": {
+        "useKeyWithClickEvents": "off"
+      },
+      "complexity": {
+        "noImportantStyles": "off"
+      }
     }
   },
-  "formatter": {
+  "assist": {
     "enabled": true,
-    "files": {
-      "includes": ["src/**/*.{ts,tsx,js,mjs,json}"]
-    }
-  },
-  "javascript": {
-    "formatter": {
-      "embed": {
-        "css": true,
-        "javascript": true,
-        "markdown:markdown": true
+    "actions": {
+      "source": {
+        "organizeImports": "on"
       }
     }
   }
