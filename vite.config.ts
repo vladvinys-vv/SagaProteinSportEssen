@@ -12,6 +12,7 @@ export default defineConfig({
   server: {
     port: 3100,
     host: true,
+    allowedHosts: true,
   },
   build: {
     outDir: "dist",

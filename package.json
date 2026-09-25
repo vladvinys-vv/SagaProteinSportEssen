@@ -1,7 +1,7 @@
 {
   "name": "sagaproteinsportessen",
   "version": "1.0.0",
-  "description": "Protein Sports Nutrition E-Commerce Platform for the German market",
+  "description": "Форма — локальное PWA для учёта питания, тренировок и прогресса",
   "private": true,
   "scripts": {
     "dev": "vite",
@@ -15,31 +15,25 @@
     "test:ui": "vitest --ui",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:accessibility": "playwright test --config=playwright.a11y.config.ts",
     "prepare": "husky install"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
-    "i18next": "^25.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-i18next": "^15.0.0",
     "react-router": "^7.0.0"
   },
   "devDependencies": {
-    "@playwright/experimental-ct-react": "^1.50.0",
     "@playwright/test": "^1.50.0",
-    "@testing-library/dom": "^9.3.4",
+    "@testing-library/dom": "^10.0.0",
     "@testing-library/jest-dom": "^7.0.0",
     "@testing-library/react": "^16.0.0",
     "@testing-library/user-event": "^14.6.7",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^5.0.0",
-    "axe-core": "^4.8.0",
-    "axe-playwright": "^1.0.0",
     "biome": "^0.3.0",
     "happy-dom": "^20.14.5",
     "husky": "^9.0.0",
