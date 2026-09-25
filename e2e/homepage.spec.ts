@@ -61,7 +61,7 @@ test.describe("Форма — оболочка приложения", () => {
     await expect(page).toHaveURL(/\/nutrition$/);
     await expect(sheet).toBeHidden();
     // Карточка алкоголя в фокусе: первое поле формы готово к вводу.
-    await expect(page.getByLabel("Название", { exact: true })).toBeFocused();
+    await expect(page.locator("#alcohol input").first()).toBeFocused();
   });
 
   test("ведёт по ссылкам аналитики и возвращает на главную", async ({ page }) => {
