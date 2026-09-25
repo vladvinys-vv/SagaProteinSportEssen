@@ -3,15 +3,16 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it } from "vitest";
 import { createEmptyState } from "@/data/demo";
+import { dateKey, daysAgoKey } from "@/lib/calculations";
 import { STORAGE_KEY } from "@/lib/storage";
 import NutritionPage from "@/pages/NutritionPage";
 import { AppProvider } from "@/state/AppContext";
 
 /** Карточка по заголовку секции — на странице много одинаковых полей ввода. */
-const cardByHeading = (name: string): HTMLElement => {
+const cardByHeading = (name: string | RegExp): HTMLElement => {
   const heading = screen.getByRole("heading", { name });
   const card = heading.closest("section");
-  if (!card) throw new Error(`Не найдена карточка «${name}»`);
+  if (!card) throw new Error(`Не найдена карточка «${String(name)}»`);
   return card;
 };
 
@@ -91,5 +92,58 @@ describe("страница питания", () => {
     expect(summary).not.toBeNull();
     expect(within(summary as HTMLElement).getByText("231 ккал")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Удалить Красное вино" })).toBeInTheDocument();
+  });
+});
+
+describe("вкусняшки и алкоголь", () => {
+  beforeEach(() => window.localStorage.clear());
+
+  it("без серии чистых дней показывает лестницу и подсказку", () => {
+    renderPage();
+
+    const card = cardByHeading("Серия чистых дней закрыта");
+    expect(card.querySelectorAll(".treat-ladder > span")).toHaveLength(9);
+    expect(within(card).getByText(/Отметь день без джанк-фуда/)).toBeInTheDocument();
+  });
+
+  it("открывает вкусняшку за серию и записывает её в перекус", async () => {
+    const user = userEvent.setup();
+    const state = createEmptyState();
+    state.meals = [0, 1].map((daysAgo) => ({
+      id: `meal-${daysAgo}`,
+      date: daysAgoKey(daysAgo),
+      meal: "breakfast" as const,
+      name: "Овсянка",
+      amountG: 100,
+      calories: 380,
+      protein: 13,
+      fat: 7,
+      carbs: 62,
+      sugar: 1,
+      source: "database" as const,
+      junkFood: false,
+    }));
+    renderPage(state);
+
+    const card = cardByHeading(/Серия 2 дня/);
+    expect(card.querySelectorAll(".treat-ladder > span.is-reached")).toHaveLength(2);
+
+    const treat = card.querySelector(".treat-card") as HTMLElement;
+    await user.click(within(treat).getByRole("button", { name: "Съесть и записать" }));
+
+    expect(within(card).getByRole("status")).toHaveTextContent("добавлено в перекус");
+    expect(screen.getByRole("button", { name: /Удалить .* вкусняшка/ })).toBeInTheDocument();
+  });
+
+  it("считает, сколько прогресса стоит алкоголь", async () => {
+    const state = createEmptyState();
+    state.alcohol = [{ id: "wine", date: dateKey(), name: "Красное вино", volumeMl: 500, abv: 12.5, calories: 700 }];
+    renderPage(state);
+
+    const card = cardByHeading("Алкоголь");
+    expect(within(card).getByText("дни прогресса")).toBeInTheDocument();
+    expect(within(card).getByText("−2.8")).toBeInTheDocument();
+    expect(within(card).getByText(/отнимают|стоят/)).toBeInTheDocument();
+    expect(card.querySelector(".stagnation-card")?.className).toMatch(/is-(none|watch|risk)/);
   });
 });

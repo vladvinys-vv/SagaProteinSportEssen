@@ -38,10 +38,30 @@ test.describe("Форма — оболочка приложения", () => {
     const navigation = page.getByRole("navigation", { name: "Основная навигация" });
     await expect(navigation.getByRole("link", { name: "Питание" })).toBeVisible();
     await expect(navigation.getByRole("link", { name: "Тренировки" })).toBeVisible();
+    await expect(navigation.getByRole("link", { name: "Цены" })).toBeVisible();
     await expect(navigation.getByRole("link", { name: "Профиль" })).toBeVisible();
 
     await navigation.getByRole("link", { name: "Профиль" }).click();
     await expect(page.getByRole("heading", { name: "Твои параметры" })).toBeVisible();
+  });
+
+  test("ведёт в раздел цен и показывает сравнение магазинов", async ({ page }) => {
+    await openSection(page, "Цены");
+    await expect(page.getByRole("heading", { name: "Где дешевле, а где изысканнее" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Магазины по кошельку" })).toBeVisible();
+  });
+
+  test("открывает быстрые действия и уводит к нужной форме", async ({ page }) => {
+    await dismissOnboarding(page);
+    await page.getByRole("button", { name: "Быстрые действия" }).click();
+    const sheet = page.getByRole("dialog", { name: "Быстрые действия" });
+    await expect(sheet).toBeVisible();
+
+    await sheet.getByRole("button", { name: /Внести алкоголь/ }).click();
+    await expect(page).toHaveURL(/\/nutrition$/);
+    await expect(sheet).toBeHidden();
+    // Карточка алкоголя в фокусе: первое поле формы готово к вводу.
+    await expect(page.getByLabel("Название", { exact: true })).toBeFocused();
   });
 
   test("ведёт по ссылкам аналитики и возвращает на главную", async ({ page }) => {

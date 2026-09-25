@@ -4,6 +4,8 @@ interface CardProps {
   children: ReactNode;
   className?: string;
   as?: "section" | "article" | "div";
+  /** Якорь для быстрых действий из нижней панели (см. useFocusSection). */
+  id?: string;
   role?: string;
   "aria-modal"?: boolean | "true" | "false";
   "aria-label"?: string;

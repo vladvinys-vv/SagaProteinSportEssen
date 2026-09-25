@@ -7,8 +7,10 @@ export async function dismissOnboarding(page: Page) {
 }
 
 /** Переход в раздел через нижнюю навигацию. */
-export async function openSection(page: Page, name: "Питание" | "Тренировки" | "Профиль") {
+const paths = { Питание: "/nutrition", Тренировки: "/workouts", Цены: "/prices", Профиль: "/profile" } as const;
+
+export async function openSection(page: Page, name: keyof typeof paths) {
   await dismissOnboarding(page);
   await page.getByRole("navigation", { name: "Основная навигация" }).getByRole("link", { name }).click();
-  await expect(page).toHaveURL(new RegExp(`/${name === "Питание" ? "nutrition" : name === "Тренировки" ? "workouts" : "profile"}$`));
+  await expect(page).toHaveURL(new RegExp(`${paths[name]}$`));
 }

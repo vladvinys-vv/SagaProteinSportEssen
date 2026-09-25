@@ -1,7 +1,9 @@
-import { CalendarDays, Check, Dumbbell, Plus, Save, Trash2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Calculator, CalendarDays, Check, Dumbbell, Plus, Save, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Card, EmptyState, SectionHeader } from "@/components/UI";
+import { useFocusSection } from "@/hooks/useFocusSection";
 import { dateKey, getNextWorkoutRecommendation } from "@/lib/calculations";
+import { buildFiveThreeOne, buildJuggernaut, getDefaultLifts, type ProgramAccessory, type ProgramLiftInput } from "@/lib/programs";
 import { useAppState } from "@/state/AppContext";
 import type { ProgramMode, WorkoutDay, WorkoutProgram, WorkoutSet } from "@/types";
 
@@ -14,24 +16,49 @@ const programLabels: Record<WorkoutProgram["type"], string> = {
 };
 const modeLabels: Record<ProgramMode, string> = { strength: "Сила", hypertrophy: "Гипертрофия", general: "Общий режим" };
 
-/** Пустые строки ввода подходов для выбранного тренировочного дня. */
+/**
+ * Строки ввода подходов для выбранного дня: упражнения с планом
+ * (5/3/1, Juggernaut) разворачиваются в подходы с готовыми весами.
+ */
 const freshSets = (day?: WorkoutDay): WorkoutSet[] =>
-  (day?.exercises ?? []).map((exercise, index) => ({
-    id: `${day?.id ?? "day"}-${index}-${exercise.name}`,
-    exercise: exercise.name,
-    weightKg: 0,
-    reps: 0,
-    rpe: 8,
-  }));
+  (day?.exercises ?? []).flatMap((exercise, index) => {
+    if (exercise.setsPlan?.length) {
+      return exercise.setsPlan.map((set, setIndex) => ({
+        id: `${day?.id ?? "day"}-${index}-${setIndex}-${exercise.name}`,
+        exercise: exercise.name,
+        weightKg: set.weightKg,
+        reps: set.reps,
+        rpe: 8,
+      }));
+    }
+    return [
+      {
+        id: `${day?.id ?? "day"}-${index}-${exercise.name}`,
+        exercise: exercise.name,
+        weightKg: 0,
+        reps: 0,
+        rpe: 8,
+      },
+    ];
+  });
 
 export default function WorkoutPage() {
   const { state, updateState } = useAppState();
+  useFocusSection();
   const [programId, setProgramId] = useState(state.programs[0]?.id ?? "");
   const program = state.programs.find((item) => item.id === programId) ?? state.programs[0];
   const [dayIndex, setDayIndex] = useState(0);
   const [date, setDate] = useState(dateKey());
   const [sets, setSets] = useState<WorkoutSet[]>([{ id: "new-1", exercise: "", weightKg: 0, reps: 0, rpe: 8 }]);
   const [newExercise, setNewExercise] = useState({ name: "", sets: 3, reps: "8–12", note: "" });
+  const [builderType, setBuilderType] = useState<"fiveThreeOne" | "juggernaut">("fiveThreeOne");
+  const [builder, setBuilder] = useState<{ trainingMaxPercent: number; accessory: ProgramAccessory; mode: ProgramMode; lifts: ProgramLiftInput[] }>(() => ({
+    trainingMaxPercent: 90,
+    accessory: "fsl",
+    mode: "strength",
+    lifts: getDefaultLifts(state.programs.find((item) => item.type === "fiveThreeOne")?.trainingMaxes),
+  }));
+  const [builderMessage, setBuilderMessage] = useState("");
   const [customDraft, setCustomDraft] = useState<{ name: string; mode: ProgramMode; days: WorkoutDay[]; activeDay: number }>({
     name: "",
     mode: "hypertrophy",
@@ -39,6 +66,7 @@ export default function WorkoutPage() {
     activeDay: 0,
   });
   const day = program?.days[dayIndex] ?? program?.days[0];
+  const isGenerated = program?.type === "fiveThreeOne" || program?.type === "juggernaut";
   const nextWeights = useMemo(
     () => (program ? getNextWorkoutRecommendation(program, state.workoutLogs.find((log) => log.programId === program.id)) : {}),
     [program, state.workoutLogs],
@@ -47,16 +75,17 @@ export default function WorkoutPage() {
   const activeCustomDay = customDraft.days[customDraft.activeDay];
 
   // Строки ввода всегда соответствуют упражнениям выбранного дня.
-  // Уже введённые значения сохраняются, пока день и упражнения не изменились.
+  // План дня (5/3/1, Juggernaut) разворачивается в подходы с готовыми весами,
+  // а введённые значения хранятся отдельно для каждого дня и программы.
+  const setsByDay = useRef(new Map<string, WorkoutSet[]>());
+  const daySignature = `${program?.id ?? ""}|${day?.id ?? "day"}`;
+  const signatureRef = useRef<string | null>(null);
   useEffect(() => {
-    const dayId = day?.id ?? "day";
-    setSets((current) =>
-      (day?.exercises ?? []).map((exercise, index) => {
-        const existing = current.find((set) => set.exercise === exercise.name && set.id.startsWith(`${dayId}-`));
-        return existing ?? { id: `${dayId}-${index}-${exercise.name}`, exercise: exercise.name, weightKg: 0, reps: 0, rpe: 8 };
-      }),
-    );
-  }, [day]);
+    if (signatureRef.current === daySignature) return;
+    if (signatureRef.current !== null) setsByDay.current.set(signatureRef.current, sets);
+    signatureRef.current = daySignature;
+    setSets(setsByDay.current.get(daySignature) ?? freshSets(day));
+  }, [daySignature, day, sets]);
 
   const updateProgram = (days: WorkoutDay[]) => {
     if (!program) return;
@@ -116,6 +145,19 @@ export default function WorkoutPage() {
       ],
     });
     setNewExercise({ name: "", sets: 3, reps: "8–12", note: "" });
+  };
+
+  const generateProgram = () => {
+    const input = { ...builder, name: builderType === "fiveThreeOne" ? "5/3/1 — мой цикл" : "Juggernaut — мой цикл" };
+    const generated = builderType === "fiveThreeOne" ? buildFiveThreeOne(input) : buildJuggernaut(input);
+    updateState({ programs: [...state.programs, generated] });
+    setProgramId(generated.id);
+    setDayIndex(0);
+    setBuilderMessage(`Готово: ${generated.name}. План с весами уже подставлен в журнал.`);
+  };
+
+  const updateLift = (index: number, update: Partial<ProgramLiftInput>) => {
+    setBuilder({ ...builder, lifts: builder.lifts.map((lift, liftIndex) => (liftIndex === index ? { ...lift, ...update } : lift)) });
   };
 
   const removeCustomExercise = (exerciseName: string) => {
@@ -179,6 +221,32 @@ export default function WorkoutPage() {
     </Card>
 
     <Card>
+      <SectionHeader eyebrow="Конструктор" title="Системы 5/3/1 и Juggernaut" />
+      <p className="section-intro-text">Укажи максимумы — приложение посчитает тренировочные проценты, разложит волны по неделям и подставит рабочие веса в журнал.</p>
+      <div className="builder-tabs">
+        <button type="button" className={builderType === "fiveThreeOne" ? "is-active" : undefined} onClick={() => setBuilderType("fiveThreeOne")}>5/3/1</button>
+        <button type="button" className={builderType === "juggernaut" ? "is-active" : undefined} onClick={() => setBuilderType("juggernaut")}>Juggernaut</button>
+      </div>
+      <div className="builder-grid">
+        <label><span>Тренировочный максимум, % от 1ПМ</span><select value={builder.trainingMaxPercent} onChange={(event) => setBuilder({ ...builder, trainingMaxPercent: Number(event.target.value) })}><option value={85}>85 %</option><option value={90}>90 %</option></select></label>
+        <label><span>Подсобка</span><select value={builder.accessory} onChange={(event) => setBuilder({ ...builder, accessory: event.target.value as ProgramAccessory })}><option value="none">Без подсобки</option><option value="fsl">FSL — 5×5 на первом весе</option><option value="bbb">BBB — 5×10 на 50 %</option></select></label>
+        <label><span>Режим</span><select value={builder.mode} onChange={(event) => setBuilder({ ...builder, mode: event.target.value as ProgramMode })}><option value="strength">Сила</option><option value="hypertrophy">Гипертрофия</option><option value="general">Общий режим</option></select></label>
+      </div>
+      <div className="builder-lifts">
+        {builder.lifts.map((lift, index) => (
+          <label key={lift.name}>
+            <span>{lift.name}</span>
+            <input type="number" min="0" step="2.5" value={lift.maxKg || ""} placeholder="1ПМ, кг" onChange={(event) => updateLift(index, { maxKg: Number(event.target.value) })} />
+            <small>ТМ {Math.round((lift.maxKg * builder.trainingMaxPercent) / 100 / 2.5) * 2.5} кг</small>
+          </label>
+        ))}
+      </div>
+      <button className="button primary full" type="button" disabled={!builder.lifts.some((lift) => lift.maxKg > 0)} onClick={generateProgram}><Calculator size={17} /> Сгенерировать программу</button>
+      {builderMessage && <p className="muted" role="status">{builderMessage}</p>}
+      <p className="constructor-hint">{builderType === "fiveThreeOne" ? "5/3/1: 65/75/85 → 70/80/90 → 75/85/95, последний подход до отказа, четвёртая неделя — разгрузка." : "Juggernaut: волны 10 → 8 → 5 → 3 повтора, три недели роста и разгрузка в каждой волне."}</p>
+    </Card>
+
+    <Card>
       <SectionHeader eyebrow="Конструктор" title="Пользовательская программа" />
       <div className="program-constructor">
         <div className="constructor-fields">
@@ -224,7 +292,19 @@ export default function WorkoutPage() {
         {day.exercises.map((exercise) => (
           <div className="exercise-row" key={exercise.name}>
             <div><strong>{exercise.name}</strong><small>{exercise.sets} подходов · {exercise.reps} повторов{exercise.note ? ` · ${exercise.note}` : ""}</small></div>
-            <span className="next-weight">следующий вес {nextWeights[exercise.name]?.toFixed(1) ?? "0.0"} кг</span>
+            {exercise.setsPlan?.length ? (
+              <div className="set-plan">
+                {exercise.setsPlan.map((set) => (
+                  <span className={`plan-set ${set.amrap ? "is-amrap" : ""}`} key={`${set.label}-${set.percent}-${set.reps}`}>
+                    <small>{set.label}</small>
+                    <strong>{set.percent} % × {set.reps}{set.amrap ? "+" : ""}</strong>
+                    <span>{set.weightKg} кг</span>
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <span className="next-weight">следующий вес {nextWeights[exercise.name]?.toFixed(1) ?? "0.0"} кг</span>
+            )}
             <button className="icon-button danger" type="button" aria-label={`Удалить ${exercise.name}`} onClick={() => removeExercise(exercise.name)}><Trash2 size={14} /></button>
           </div>
         ))}
@@ -240,7 +320,7 @@ export default function WorkoutPage() {
 
     <Card>
       <SectionHeader eyebrow="Журнал" title="Записать тренировку" />
-      <div className="workout-form">
+      <div className="workout-form" id="journal">
         <label><span>Дата</span><input type="date" value={date} onChange={(event) => event.target.value && setDate(event.target.value)} /></label>
         {sets.map((set, index) => (
           <div className="pending-sets" key={set.id}>
@@ -254,6 +334,7 @@ export default function WorkoutPage() {
             </div>
           </div>
         ))}
+        {isGenerated && <p className="muted">{day?.exercises.some((exercise) => exercise.setsPlan?.length) ? "Веса и повторы подставлены из плана программы — проверьте по самочувствию и запишите факт." : "В программе нет рассчитанных процентов: заполните веса вручную."}</p>}
         <button className="button ghost" type="button" onClick={() => setSets([...sets, { id: `new-${Date.now()}`, exercise: "", weightKg: 0, reps: 0, rpe: 8 }])}><Plus size={16} /> Ещё подход</button>
         <button className="button primary" type="button" disabled={!sets.some((set) => set.exercise && set.weightKg > 0 && set.reps > 0)} onClick={saveWorkout}><Save size={17} /> Сохранить тренировку</button>
       </div>

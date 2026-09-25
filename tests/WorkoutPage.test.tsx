@@ -87,3 +87,59 @@ describe("страница тренировок", () => {
     expect(card.querySelectorAll(".exercise-row")).toHaveLength(4);
   });
 });
+
+describe("конструктор систем", () => {
+  beforeEach(() => window.localStorage.clear());
+
+  it("строит 5/3/1 по введённым максимумам и разворачивает план в журнал", async () => {
+    const user = userEvent.setup();
+    const { container } = renderPage();
+
+    const builder = cardByHeading("Системы 5/3/1 и Juggernaut");
+    await user.clear(within(builder).getByLabelText(/Присед/));
+    await user.type(within(builder).getByLabelText(/Присед/), "140");
+    await user.clear(within(builder).getByLabelText(/Жим лёжа/));
+    await user.type(within(builder).getByLabelText(/Жим лёжа/), "100");
+    await user.click(within(builder).getByRole("button", { name: "Сгенерировать программу" }));
+
+    // Программа добавлена и выбрана: 4 дня по движениям с максимумом
+    await expect(within(builder).getByRole("status")).toBeInTheDocument();
+    const cards = container.querySelectorAll(".program-card");
+    expect(cards).toHaveLength(5);
+    expect(cards[4]).toHaveClass("is-selected");
+
+    const planCard = dayCard(container);
+    expect(planCard.querySelector("h2")).toHaveTextContent("Присед");
+    const plan = planCard.querySelector(".set-plan") as HTMLElement;
+    const plannedSets = [...plan.querySelectorAll(".plan-set")];
+    expect(plannedSets).toHaveLength(3);
+    expect(plannedSets.map((element) => element.querySelector("strong")?.textContent)).toEqual(["65 % × 5", "75 % × 5", "85 % × 5+"]);
+    expect(plannedSets.map((element) => element.querySelector("span")?.textContent)).toEqual(["82.5 кг", "95 кг", "107.5 кг"]);
+    expect(plannedSets.at(-1)?.className).toContain("is-amrap");
+
+    // Журнал подставляет веса и повторы из плана
+    const journal = cardByHeading("Записать тренировку");
+    const firstSet = journal.querySelector(".pending-sets") as HTMLElement;
+    const inputs = firstSet.querySelectorAll("input");
+    expect(inputs[1]).toHaveValue(82.5);
+    expect(inputs[2]).toHaveValue(5);
+    expect(journal.querySelectorAll(".pending-sets")).toHaveLength(16);
+  });
+
+  it("строит Juggernaut с волнами и предупреждает про разгрузку", async () => {
+    const user = userEvent.setup();
+    const { container } = renderPage();
+
+    const builder = cardByHeading("Системы 5/3/1 и Juggernaut");
+    await user.click(within(builder).getByRole("button", { name: "Juggernaut" }));
+    await user.clear(within(builder).getByLabelText(/Присед/));
+    await user.type(within(builder).getByLabelText(/Присед/), "160");
+    await user.click(within(builder).getByRole("button", { name: "Сгенерировать программу" }));
+
+    const planCard = dayCard(container);
+    const exerciseNames = [...planCard.querySelectorAll(".exercise-row strong")].map((element) => element.textContent);
+    expect(exerciseNames).toContain("10-повторная волна");
+    expect(exerciseNames).toContain("3-повторная волна");
+    expect(planCard.textContent).toContain("Разгрузка");
+  });
+});

@@ -6,6 +6,7 @@ import AnalyticsPage from "@/pages/AnalyticsPage";
 import DashboardPage from "@/pages/DashboardPage";
 import NotFoundPage from "@/pages/NotFoundPage";
 import NutritionPage from "@/pages/NutritionPage";
+import PricesPage from "@/pages/PricesPage";
 import ProfilePage from "@/pages/ProfilePage";
 import WorkoutPage from "@/pages/WorkoutPage";
 import { AppProvider, useAppState } from "@/state/AppContext";
@@ -24,6 +25,7 @@ const DashboardRoutes: FC = () => {
         <Route path="/nutrition" element={<NutritionPage />} />
         <Route path="/workouts" element={<WorkoutPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
+        <Route path="/prices" element={<PricesPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

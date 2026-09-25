@@ -8,11 +8,14 @@ describe("демо- и пустое состояние", () => {
     expect(sumActivityHours(state.profile)).toBe(24);
     expect(state.weights).toHaveLength(14);
     expect(state.meals.length).toBeGreaterThan(150);
-    expect(state.alcohol).toHaveLength(1);
+    expect(state.alcohol).toHaveLength(3);
+    expect(state.foods.filter((food) => food.treat).length).toBeGreaterThanOrEqual(6);
     expect(state.presets).toHaveLength(1);
     expect(state.recipes.length).toBeGreaterThan(0);
     expect(state.programs.length).toBeGreaterThan(0);
     expect(state.workoutLogs).toHaveLength(1);
+    expect(state.prices.length).toBeGreaterThanOrEqual(15);
+    expect(new Set(state.prices.map((entry) => entry.store)).size).toBeGreaterThanOrEqual(5);
 
     const ids = state.meals.map((entry) => entry.id);
     expect(new Set(ids).size).toBe(ids.length);

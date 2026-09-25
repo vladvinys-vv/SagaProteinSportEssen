@@ -6,6 +6,7 @@ const routes = [
   { path: "/nutrition", name: "Питание" },
   { path: "/workouts", name: "Тренировки" },
   { path: "/analytics", name: "Аналитика" },
+  { path: "/prices", name: "Цены" },
   { path: "/profile", name: "Профиль" },
 ];
 

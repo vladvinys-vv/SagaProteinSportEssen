@@ -71,6 +71,8 @@ export interface Food {
   carbs: number;
   sugar: number;
   unit: "g" | "ml";
+  /** Десерт: участвует в подборе вкусняшек по серии чистых дней. */
+  treat?: boolean;
 }
 
 /** Запись о съеденном продукте за конкретный день. */
@@ -152,6 +154,19 @@ export interface Recipe {
   tags: string[];
 }
 
+/** Подход, рассчитанный по проценту от тренировочного максимума. */
+export interface PlannedSet {
+  /** Процент от тренировочного максимума. */
+  percent: number;
+  reps: number;
+  /** Рабочий вес с округлением до шага (2.5 кг). */
+  weightKg: number;
+  /** Подход «до отказа» (+) в схемах 5/3/1 и Juggernaut. */
+  amrap?: boolean;
+  /** Подпись недели цикла: «Неделя 1», «Разгрузка». */
+  label: string;
+}
+
 /** Упражнение внутри тренировочного дня. */
 export interface ExerciseTemplate {
   name: string;
@@ -159,6 +174,10 @@ export interface ExerciseTemplate {
   /** Повторы в виде строки, допускаются диапазоны («8–12», «5/3/1»). */
   reps: string;
   note?: string;
+  /** План подходов, если программа построена калькулятором (5/3/1, Juggernaut). */
+  setsPlan?: PlannedSet[];
+  /** Тренировочный максимум, от которого считались проценты. */
+  percentBaseKg?: number;
 }
 
 /** Тренировочный день программы. */
@@ -323,6 +342,85 @@ export interface PeriodNutritionSummary {
   averageWeight: number | null;
   proteinCompliantDays: number;
   proteinAdherence: number;
+}
+
+/** Насколько алкоголь тормозит прогресс. */
+export interface AlcoholStagnation {
+  /** Длина окна анализа, дней. */
+  days: number;
+  /** Количество стандартных доз (10 г этанола). */
+  standardDrinks: number;
+  totalCalories: number;
+  drinksPerWeek: number;
+  /** Эквивалент в граммах жира (7700 ккал = 1 кг). */
+  fatEquivalentG: number;
+  /** Сколько дней прогресса «съел» алкоголь. */
+  delayedDays: number;
+  /** Плановая дневная коррекция, к которой сравниваем. */
+  dailyBudget: number;
+  status: AlcoholProgressStatus;
+  goalLabel: string;
+  message: string;
+}
+
+/** Ступень лестницы вкусняшек за серию чистых дней. */
+export interface TreatTier {
+  day: number;
+  name: string;
+  budgetCalories: number;
+  budgetProtein: number;
+  label: string;
+}
+
+/** Десерт, подобранный под остаток дня. */
+export interface TreatSuggestion {
+  food: Food;
+  portionG: number;
+  calories: number;
+  protein: number;
+  /** Вписывается ли порция в остаток калорий. */
+  fits: boolean;
+  reason: string;
+}
+
+/** Предложение магазина по конкретному продукту. */
+export interface StoreOffer {
+  entryId: string;
+  store: string;
+  city: string;
+  currency: Currency;
+  /** Цена за упаковку. */
+  price: number;
+  /** Приведённая цена за 100 г/мл. */
+  normalizedPrice: number;
+  packageSize?: number;
+  date: string;
+}
+
+/** Сравнение цен на продукт между магазинами. */
+export interface ProductPriceComparison {
+  key: string;
+  productName: string;
+  unit: "г" | "мл";
+  offers: StoreOffer[];
+  cheapest: StoreOffer;
+  priciest: StoreOffer;
+  average: number;
+  /** Насколько дороже самая высокая цена к самой низкой, %. */
+  spreadPercent: number;
+  /** Экономия на упаковке при покупке в дешёвом магазине. */
+  savings: number;
+}
+
+/** Рейтинг магазина по ценам. */
+export interface StoreRanking {
+  store: string;
+  city: string;
+  /** Сколько раз магазин был самым дешёвым. */
+  wins: number;
+  entries: number;
+  /** Средний индекс цены к лучшей среди товаров магазина, %. */
+  averageIndex: number;
 }
 
 /** Разбивка суток по состояниям активности. */

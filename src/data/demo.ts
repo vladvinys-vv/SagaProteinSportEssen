@@ -22,6 +22,13 @@ export const BASE_FOODS: Food[] = [
   { id: "tuna", name: "Тунец в собственном соку", category: "Рыба", calories: 116, protein: 26, fat: 1, carbs: 0, sugar: 0, unit: "g", barcode: "100000000018" },
   { id: "berries", name: "Ягоды", category: "Фрукты", calories: 50, protein: 1, fat: 0.4, carbs: 12, sugar: 7, unit: "g", barcode: "100000000019" },
   { id: "cottage", name: "Творог 5%", category: "Молочные", calories: 121, protein: 17, fat: 5, carbs: 3, sugar: 3, unit: "g", barcode: "100000000020" },
+  { id: "fruit-salad", name: "Фруктовый салат", category: "Десерты", calories: 65, protein: 0.8, fat: 0.3, carbs: 16, sugar: 13, unit: "g", treat: true, barcode: "100000000021" },
+  { id: "berries-yogurt", name: "Ягоды с греческим йогуртом", category: "Десерты", calories: 110, protein: 8, fat: 2.5, carbs: 13, sugar: 11, unit: "g", treat: true, barcode: "100000000022" },
+  { id: "protein-icecream", name: "Протеиновое мороженое", category: "Десерты", calories: 140, protein: 12, fat: 4, carbs: 15, sugar: 8, unit: "g", treat: true, barcode: "100000000023" },
+  { id: "dark-chocolate", name: "Тёмный шоколад 85%", category: "Десерты", calories: 590, protein: 10, fat: 46, carbs: 22, sugar: 14, unit: "g", treat: true, barcode: "100000000024" },
+  { id: "curd-dessert", name: "Творожный десерт", category: "Десерты", calories: 180, protein: 14, fat: 6, carbs: 18, sugar: 12, unit: "g", treat: true, barcode: "100000000025" },
+  { id: "panna-cotta", name: "Панна-котта на протеине", category: "Десерты", calories: 210, protein: 16, fat: 9, carbs: 17, sugar: 12, unit: "g", treat: true, barcode: "100000000026" },
+  { id: "protein-baking", name: "Выпечка без сахара", category: "Десерты", calories: 260, protein: 12, fat: 12, carbs: 26, sugar: 4, unit: "g", treat: true, barcode: "100000000027" },
 ];
 
 export const RECIPES: Recipe[] = [
@@ -53,15 +60,40 @@ export const createDemoState = (): AppState => {
     meals.push(makeEntry(date, "breakfast", BASE_FOODS[0]!, 80), makeEntry(date, "breakfast", BASE_FOODS[1]!, 250), makeEntry(date, "breakfast", BASE_FOODS[2]!, 120), makeEntry(date, "lunch", BASE_FOODS[3]!, 180), makeEntry(date, "lunch", BASE_FOODS[4]!, 250), makeEntry(date, "lunch", BASE_FOODS[5]!, 120), makeEntry(date, "lunch", BASE_FOODS[6]!, 10), makeEntry(date, "dinner", BASE_FOODS[7]!, 180), makeEntry(date, "dinner", BASE_FOODS[8]!, 300), makeEntry(date, "dinner", BASE_FOODS[9]!, 150), makeEntry(date, "snack", BASE_FOODS[10]!, 40), makeEntry(date, "snack", BASE_FOODS[11]!, 150), makeEntry(date, "snack", BASE_FOODS[15]!, 50));
     if (index === 8) meals.push(makeEntry(date, "snack", BASE_FOODS[16]!, 120, { junkFood: true }));
     if (index === 2) alcohol.push({ id: `${date}-wine`, date, name: "Красное вино", volumeMl: 150, abv: 12.5, calories: Math.round(calculateAlcoholCalories(150, 12.5)) });
+    if (index === 9) alcohol.push({ id: `${date}-beer`, date, name: "Пиво светлое", volumeMl: 500, abv: 4.8, calories: Math.round(calculateAlcoholCalories(500, 4.8)) });
+    if (index === 11) alcohol.push({ id: `${date}-wine`, date, name: "Красное вино", volumeMl: 150, abv: 12.5, calories: Math.round(calculateAlcoholCalories(150, 12.5)) });
     weights.push({ id: `weight-${date}`, date, weightKg: Math.round((78 + Math.sin(index / 3) * 0.15 + (index % 3) * 0.05) * 10) / 10 });
   }
+  const priceEntry = (id: string, foodId: string, productName: string, store: string, packagePrice: number, packageSizeG?: number, packageSizeMl?: number): PriceEntry => ({
+    id,
+    productId: foodId,
+    productName,
+    store,
+    city: "Москва",
+    currency: "RUB",
+    packagePrice,
+    packageSizeG,
+    packageSizeMl,
+    date: dateKey(today),
+  });
   const prices: PriceEntry[] = [
-    { id: "price-chicken-1", productId: "chicken", productName: "Куриная грудка", store: "Пятёрочка", city: "Москва", currency: "RUB", packagePrice: 399, packageSizeG: 1000, date: dateKey(today) },
-    { id: "price-chicken-2", productId: "chicken", productName: "Куриная грудка", store: "Азбука вкуса", city: "Москва", currency: "RUB", packagePrice: 899, packageSizeG: 1000, date: dateKey(today) },
-    { id: "price-rice-1", productId: "rice", productName: "Рис отварной", store: "Дикси", city: "Москва", currency: "RUB", packagePrice: 119, packageSizeG: 900, date: dateKey(today) },
-    { id: "price-salmon-1", productId: "salmon", productName: "Лосось", store: "Рыбный ряд", city: "Москва", currency: "RUB", packagePrice: 1290, packageSizeG: 1000, date: dateKey(today) },
-    { id: "price-oats-1", productId: "oats", productName: "Овсянка", store: "Пятёрочка", city: "Москва", currency: "RUB", packagePrice: 149, packageSizeG: 800, date: dateKey(today) },
-    { id: "price-whey-1", productId: "whey", productName: "Сывороточный протеин", store: "Спортпит маркет", city: "Москва", currency: "RUB", packagePrice: 2990, packageSizeG: 900, date: dateKey(today) },
+    priceEntry("price-chicken-1", "chicken", "Куриная грудка", "Дикси", 449, 1000),
+    priceEntry("price-chicken-2", "chicken", "Куриная грудка", "Пятёрочка", 399, 1000),
+    priceEntry("price-chicken-3", "chicken", "Куриная грудка", "Лента", 379, 1000),
+    priceEntry("price-chicken-4", "chicken", "Куриная грудка", "Азбука вкуса", 899, 1000),
+    priceEntry("price-rice-1", "rice", "Рис отварной", "Дикси", 119, 900),
+    priceEntry("price-rice-2", "rice", "Рис отварной", "Пятёрочка", 139, 900),
+    priceEntry("price-rice-3", "rice", "Рис отварной", "Азбука вкуса", 289, 900),
+    priceEntry("price-salmon-1", "salmon", "Лосось", "Пятёрочка", 1090, 1000),
+    priceEntry("price-salmon-2", "salmon", "Лосось", "Рыбный ряд", 1290, 1000),
+    priceEntry("price-salmon-3", "salmon", "Лосось", "Азбука вкуса", 1890, 1000),
+    priceEntry("price-oats-1", "oats", "Овсянка", "Пятёрочка", 149, 800),
+    priceEntry("price-oats-2", "oats", "Овсянка", "Дикси", 129, 800),
+    priceEntry("price-oats-3", "oats", "Овсянка", "Лента", 159, 800),
+    priceEntry("price-oats-4", "oats", "Овсянка", "Азбука вкуса", 299, 800),
+    priceEntry("price-whey-1", "whey", "Сывороточный протеин", "Спортпит маркет", 2990, 900),
+    priceEntry("price-whey-2", "whey", "Сывороточный протеин", "Озон", 2590, 900),
+    priceEntry("price-whey-3", "whey", "Сывороточный протеин", "Азбука вкуса", 3490, 900),
   ];
   const presets: MealPreset[] = [{ id: "preset-breakfast", name: "Быстрый белковый завтрак", meal: "breakfast", entries: [{ foodId: "oats", name: "Овсянка", amountG: 80, ...scaleNutrition(380, 13, 7, 62, 1, 80), source: "database", junkFood: false }, { foodId: "whey", name: "Сывороточный протеин", amountG: 30, ...scaleNutrition(390, 78, 5, 7, 3, 30), source: "database", junkFood: false }] }];
   return { version: 1, profile: makeProfile(), foods: BASE_FOODS, customFoods: [], meals, presets, alcohol, weights, prices, recipes: RECIPES, programs: PROGRAMS, workoutLogs: [{ id: "log-demo", date: daysAgoKey(1), programId: "program-ppl", programName: "PPL — гипертрофия", sets: Array.from({ length: 4 }, (_, index) => ({ id: `set-${index}`, exercise: "Жим лёжа", weightKg: 70, reps: 8, rpe: 8 })) }], adjustments: [] };
