@@ -1,47 +1,94 @@
-# SagaProteinSportEssen
+# Форма — дневник питания и тренировок
 
-Protein Sports Nutrition E-Commerce Platform — built for the German market with i18n support.
+Локальное PWA-приложение для контроля состава тела: норма калорий по MET-активности,
+дневник питания, учёт алкоголя, наблюдение за ценами, тренировочные программы с
+автопрогрессией и аналитика прогресса. Всё считается в браузере — данные не покидают
+устройство, есть офлайн-режим.
 
-**Part of [Auto Company](https://github.com/vladvinys-vv/auto-company)** — AI agents building profitable software 24/7.
+## Возможности
 
-## Tech Stack
+- **Сводка дня** — калории, макросы, белок на кг, шаги, MET-разбор 24 часов.
+- **Питание** — база продуктов, поиск, штрихкоды, свои продукты, пресеты приёмов пищи,
+  рекомендации продуктов и рецептов под цель и ценовую категорию, дневник по дням.
+- **Алкоголь** — калории этанола (объём × крепость × 0.789 × 7.1) учитываются в дневной
+  сумме и adherence, но не искажают макросы еды.
+- **Тренировки** — 4 встроенные программы (5/3/1, Juggernaut, PPL, Starting Strength),
+  конструктор собственной программы, журнал подходов, рекомендация следующего рабочего веса.
+- **Аналитика** — графики веса/калорий/белка за 7/14/30 дней, adherence, детектор плато,
+  авто-коррекция нормы с историей изменений, экспорт и импорт JSON.
+- **Профиль** — параметры тела, распределение суток по MET, макросы, история замеров веса.
+- **PWA** — установка на устройство, офлайн-оболочка через service worker, экспорт данных.
 
-- **React 19** with modern hooks (useActionState, useOptimistic, use)
-- **TypeScript** with strict typing
-- **Tailwind CSS v4** with native CSS variables
-- **Vite** + Rolldown for fast builds
-- **i18next** for i18n (German/English, RTL-ready)
-- **Vitest** + **Playwright** for testing
+## Стек
 
-## Getting Started
+React 19 · TypeScript (strict) · Vite 6 · React Router 7 · lucide-react · Vitest +
+Testing Library · Playwright (+ axe) · Biome.
+
+## Быстрый старт
 
 ```bash
 npm install
-npm run dev
+npm run dev          # http://localhost:3100
 ```
 
-## Development
+## Скрипты
 
 ```bash
-npm run typecheck   # TypeScript validation
-npm run lint        # Biome linting
-npm run test        # Unit tests
-npm run test:e2e    # E2E tests
+npm run verify       # типы + линт + юнит-тесты + сборка (то же, что делает CI)
+npm run typecheck    # tsc --noEmit
+npm run lint         # biome check src/ tests/ e2e/
+npm run lint:write   # авто-исправления линта и импортов
+npm run test         # Vitest: lib/, storage, страницы
+npm run test:coverage
+npm run build        # прод-сборка в dist/
+npm run preview      # локальный предпросмотр сборки
+npm run test:e2e:install  # браузеры Playwright (chromium, firefox)
+npm run test:e2e     # сквозные сценарии (оболочка, PWA/офлайн, питание, тренировки, профиль)
+npm run test:a11y    # axe-core по всем маршрутам
 ```
 
-## Structure
+## Структура
 
 ```
 src/
-├── app/          # App shell (layout, router, providers)
-├── pages/        # Route components
-├── components/   # Reusable UI components
-├── features/     # Domain features (catalog, cart, checkout)
-├── hooks/        # Custom React hooks
-├── lib/          # Utilities and helpers
-└── types/        # Shared TypeScript types
+├── App.tsx            # маршруты и обязательный онбординг
+├── components/        # UI-кит, каркас, онбординг
+├── pages/             # Сводка, Питание, Тренировки, Аналитика, Профиль, 404
+├── lib/               # расчёты домена, формат, localStorage
+├── data/demo.ts       # база продуктов, рецепты, программы, демо- и пустое состояние
+├── state/AppContext   # состояние приложения + автосохранение
+├── types/             # доменные типы (AppState и расчётные структуры)
+└── styles/index.css   # тёмная тема, токены, адаптив
+public/
+├── sw.js              # офлайн-оболочка (network-first для навигации)
+├── manifest.webmanifest
+└── icons/             # PWA-иконки 192/512/maskable/apple-touch
+e2e/                   # Playwright: flows + PWA + axe
+tests/                 # Vitest: расчёты, хранилище, демо-данные, страницы
 ```
 
-## License
+## Как считаются нормы
 
-Private — part of Auto Company ecosystem.
+1. Основной обмен (Миффлин–Сан Жеор): `10·вес + 6.25·рост − 5·возраст ± 5/−161`.
+2. Расход = `BMR / 24 × Σ(часы × MET)`, где MET: сон 1.0, сидя 1.3, стоя 2.0, тренировка 6.0.
+3. Норма = расход + цель (набор +300, сушка −450, поддержание/рекомпозиция 0) + ручная коррекция.
+4. Авто-коррекция предлагает ±250 ккал, если фактическое недельное изменение веса расходится
+   с ожидаемым больше чем на 0.25 кг. Каждое изменение попадает в историю коррекций.
+
+## Данные и приватность
+
+Состояние лежит в `localStorage` под ключом `forma-state-v1` (`AppState.version`).
+Экспорт/импорт — обычный JSON-файл, поэтому данные переносятся между браузерами
+и устройствами вручную. Полный сброс — в «Профиле» и «Аналитике».
+
+## CI/CD
+
+- `.github/workflows/ci.yml` — типы, линт, юнит-тесты, сборка, затем Playwright (chromium, firefox)
+  с публикацией отчёта.
+- `.github/workflows/deploy.yml` — прод-деплой на Vercel через официальный CLI
+  (нужны секреты `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`).
+- `vercel.json` — SPA-rewrites, immutable-кэш ассетов, no-cache для `sw.js`.
+
+## Лицензия
+
+Private — часть экосистемы Auto Company.
