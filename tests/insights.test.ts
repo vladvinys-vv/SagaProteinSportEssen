@@ -57,7 +57,7 @@ describe("счётчик алкоголя", () => {
     expect(stagnation.dailyBudget).toBe(450);
     expect(stagnation.delayedDays).toBe(1.6);
     expect(stagnation.drinksPerWeek).toBe(5);
-    expect(stagnation.message).toContain("сушку");
+    expect(stagnation.message).toContain("сушке");
   });
 
   it("для целей без дефицита считает день прогресса по 250 ккал", () => {

@@ -1,4 +1,5 @@
 import { GOAL_CALORIE_ADJUSTMENTS, getNormalizedPrice } from "@/lib/calculations";
+import { plural, pluralDecimal } from "@/lib/plural";
 import type {
   AlcoholEntry,
   AlcoholStagnation,
@@ -34,7 +35,8 @@ const dateWindow = (days: number): Set<string> => {
   return keys;
 };
 
-const goalLabels: Record<Goal, string> = { cut: "сушку", gain: "набор", recomp: "рекомпозицию", maintain: "поддержание" };
+/** Дательный падеж: сообщение читается как «мешают сушке» и «к цели (сушке)». */
+const goalLabels: Record<Goal, string> = { cut: "сушке", gain: "набору", recomp: "рекомпозиции", maintain: "поддержанию" };
 
 /**
  * Оценивает, насколько алкоголь тормозит прогресс: калории, стандартные дозы,
@@ -65,12 +67,14 @@ export const getAlcoholStagnation = (
     standardDrinks <= 0 ? "none" : drinksPerWeek >= 14 || heaviestDay >= 5 ? "risk" : drinksPerWeek >= 7 || heaviestDay >= 3 ? "watch" : "none";
 
   const goalLabel = goalLabels[profile.goal];
+  const period_ = plural(days, "день", "дня", "дней");
+  const delayed_ = pluralDecimal(delayedDays, "день", "дня", "дней", "дня");
   const message =
     standardDrinks <= 0
-      ? `Алкоголя за ${days} дней нет — прогресс идёт без помех.`
+      ? `Алкоголя за ${period_} нет — прогресс идёт без помех.`
       : status === "risk"
-        ? `${standardDrinks.toFixed(1)} доз за ${days} дней (≈${drinksPerWeek.toFixed(1)} в неделю) отнимают ${delayedDays.toFixed(1)} дня прогресса и мешают ${goalLabel}. Самый тяжёлый день: ${heaviestDay.toFixed(1)} доз.`
-        : `${standardDrinks.toFixed(1)} доз за ${days} дней стоят ${Math.round(totalCalories)} ккал — это ${delayedDays.toFixed(1)} дня без движения к цели (${goalLabel}).`;
+        ? `${pluralDecimal(standardDrinks, "доза", "дозы", "доз", "дозы")} за ${period_} (≈${pluralDecimal(drinksPerWeek, "доза", "дозы", "доз", "дозы")} в неделю) отнимают ${delayed_} прогресса и мешают ${goalLabel}. Самый тяжёлый день: ${pluralDecimal(heaviestDay, "доза", "дозы", "доз", "дозы")}.`
+        : `${pluralDecimal(standardDrinks, "доза", "дозы", "доз", "дозы")} за ${period_} стоят ${Math.round(totalCalories)} ккал — это ${delayed_} без движения к цели (${goalLabel}).`;
 
   return {
     days,

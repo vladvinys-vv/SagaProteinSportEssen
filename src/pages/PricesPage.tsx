@@ -4,6 +4,7 @@ import { Card, EmptyState, SectionHeader } from "@/components/UI";
 import { useFocusSection } from "@/hooks/useFocusSection";
 import { dateKey, getNormalizedPrice } from "@/lib/calculations";
 import { getDominantCurrency, getPriceComparisons, getShoppingSavings, getStoreRankings } from "@/lib/insights";
+import { plural } from "@/lib/plural";
 import { useAppState } from "@/state/AppContext";
 import type { Currency, Food, PriceCategory, PriceEntry } from "@/types";
 
@@ -118,7 +119,7 @@ export default function PricesPage() {
           <span className="summary-icon"><ShoppingBasket size={17} /></span>
           <span>Продуктов в наблюдении</span>
           <strong>{savings.products}</strong>
-          <small>{state.prices.length} записей по {new Set(state.prices.map((entry) => entry.store)).size} магазинам</small>
+          <small>{plural(state.prices.length, "запись", "записи", "записей")} по {plural(new Set(state.prices.map((entry) => entry.store)).size, "магазину", "магазинам", "магазинам")}</small>
         </Card>
         <Card className="summary-card protein-summary">
           <span className="summary-icon"><TrendingDown size={17} /></span>
@@ -130,7 +131,7 @@ export default function PricesPage() {
           <span className="summary-icon"><Store size={17} /></span>
           <span>Чаще всего выгоднее</span>
           <strong>{bestStore?.store ?? "—"}</strong>
-          <small>{bestStore ? `${bestStore.wins} побед · индекс ${bestStore.averageIndex} %` : "нет данных"}</small>
+          <small>{bestStore ? `${plural(bestStore.wins, "победа", "победы", "побед")} · индекс ${bestStore.averageIndex} %` : "нет данных"}</small>
         </Card>
         <Card className="summary-card">
           <span className="summary-icon"><DollarSign size={17} /></span>
@@ -150,7 +151,7 @@ export default function PricesPage() {
                 <div>
                   <strong>{comparison.productName}</strong>
                   <small>
-                    {comparison.offers.length} магазина · разброс {comparison.spreadPercent} % · экономия {money(comparison.savings, currency)}
+                    {plural(comparison.offers.length, "магазин", "магазина", "магазинов")} · разброс {comparison.spreadPercent} % · экономия {money(comparison.savings, currency)}
                   </small>
                 </div>
                 <span className={`price-category-label ${comparison.spreadPercent >= 50 ? "is-wide" : ""}`}>
@@ -168,7 +169,7 @@ export default function PricesPage() {
                 <div className="offer">
                   <span>средняя</span>
                   <strong>{money(comparison.average, comparison.cheapest.currency)}</strong>
-                  <small>по {comparison.offers.length} наблюдениям</small>
+                  <small>по {plural(comparison.offers.length, "наблюдению", "наблюдениям", "наблюдениям")}</small>
                 </div>
                 <div className="offer is-priciest">
                   <span>{categoryLabel.premium}</span>
@@ -194,7 +195,7 @@ export default function PricesPage() {
                 <div>
                   <strong>{ranking.store}</strong>
                   <small>
-                    {ranking.city} · {ranking.wins} из {comparisons.length} побед
+                    {ranking.city} · {ranking.wins} из {plural(comparisons.length, "победы", "побед", "побед")}
                   </small>
                 </div>
                 <span className={ranking.averageIndex <= 105 ? "index-tag is-good" : ranking.averageIndex >= 130 ? "index-tag is-bad" : "index-tag"}>

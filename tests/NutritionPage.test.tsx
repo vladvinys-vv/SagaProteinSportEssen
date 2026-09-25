@@ -45,7 +45,7 @@ describe("страница питания", () => {
 
     expect(screen.getByRole("button", { name: "Удалить Овсянка" })).toBeInTheDocument();
     expect(screen.getByText("760")).toBeInTheDocument();
-    expect(within(cardByHeading("Сегодня")).getByText("1 записей")).toBeInTheDocument();
+    expect(within(cardByHeading("Сегодня")).getByText("1 запись")).toBeInTheDocument();
   });
 
   it("фильтрует базу продуктов по запросу", async () => {

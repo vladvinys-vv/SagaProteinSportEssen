@@ -50,35 +50,11 @@ export const PROGRAMS: WorkoutProgram[] = [
 const makeEntry = (date: string, meal: MealType, food: Food, amountG: number, extra: Partial<MealEntry> = {}): MealEntry => ({ id: `${date}-${meal}-${food.id}-${amountG}`, date, meal, foodId: food.id, name: food.name, amountG, ...scaleNutrition(food.calories, food.protein, food.fat, food.carbs, food.sugar, amountG), source: "database", junkFood: false, barcode: food.barcode, ...extra });
 const makeProfile = (): Profile => ({ completed: false, weightKg: 78, heightCm: 180, age: 30, sex: "male", goal: "recomp", currency: "EUR", calorieAdjustment: GOAL_CALORIE_ADJUSTMENTS.recomp, proteinGPerKg: 2, fatGPerKg: 0.8, sugarLimitG: 40, activityHours: { lying: 11, sitting: 9, standing: 3, training: 1 }, steps: 8200 });
 
-export const createDemoState = (): AppState => {
-  const meals: MealEntry[] = [];
-  const weights: WeightEntry[] = [];
-  const alcohol: AlcoholEntry[] = [];
-  const today = new Date();
-  for (let index = 13; index >= 0; index -= 1) {
-    const date = daysAgoKey(index);
-    meals.push(makeEntry(date, "breakfast", BASE_FOODS[0]!, 80), makeEntry(date, "breakfast", BASE_FOODS[1]!, 250), makeEntry(date, "breakfast", BASE_FOODS[2]!, 120), makeEntry(date, "lunch", BASE_FOODS[3]!, 180), makeEntry(date, "lunch", BASE_FOODS[4]!, 250), makeEntry(date, "lunch", BASE_FOODS[5]!, 120), makeEntry(date, "lunch", BASE_FOODS[6]!, 10), makeEntry(date, "dinner", BASE_FOODS[7]!, 180), makeEntry(date, "dinner", BASE_FOODS[8]!, 300), makeEntry(date, "dinner", BASE_FOODS[9]!, 150), makeEntry(date, "snack", BASE_FOODS[10]!, 40), makeEntry(date, "snack", BASE_FOODS[11]!, 150), makeEntry(date, "snack", BASE_FOODS[15]!, 50));
-    if (index === 8) meals.push(makeEntry(date, "snack", BASE_FOODS[16]!, 120, { junkFood: true }));
-    if (index === 2) alcohol.push({ id: `${date}-wine`, date, name: "Красное вино 0,2 л", volumeMl: 200, abv: 13, calories: Math.round(calculateAlcoholCalories(200, 13)) });
-    if (index === 9) alcohol.push({ id: `${date}-beer`, date, name: "Astra Pils 0,5 л", volumeMl: 500, abv: 4.9, calories: Math.round(calculateAlcoholCalories(500, 4.9)) });
-    if (index === 11) alcohol.push({ id: `${date}-wine`, date, name: "Красное вино 0,2 л", volumeMl: 200, abv: 13, calories: Math.round(calculateAlcoholCalories(200, 13)) });
-    weights.push({ id: `weight-${date}`, date, weightKg: Math.round((78 + Math.sin(index / 3) * 0.15 + (index % 3) * 0.05) * 10) / 10 });
-  }
-  // Гамбург: сети, которые реально есть в городе, и ориентир цен на 2025 год
-  // (за упаковку, а не за развес). Дискаунтеры сверху, био-маркеты — внизу.
-  const priceEntry = (id: string, foodId: string, productName: string, store: string, packagePrice: number, packageSizeG?: number, packageSizeMl?: number): PriceEntry => ({
-    id,
-    productId: foodId,
-    productName,
-    store,
-    city: "Гамбург",
-    currency: "EUR",
-    packagePrice,
-    packageSizeG,
-    packageSizeMl,
-    date: dateKey(today),
-  });
-  const PRICE_SHEET: Array<[string, string, string, string, number, number]> = [
+/**
+ * Гамбург: сети, которые реально есть в городе, и ориентир цен на 2025 год
+ * (за упаковку, а не за развес). Дискаунтеры сверху, био-маркеты — внизу.
+ */
+const PRICE_SHEET: Array<[string, string, string, string, number, number]> = [
     ["price-chicken-aldi", "chicken", "Куриная грудка", "Aldi Nord", 3.49, 500],
     ["price-chicken-lidl", "chicken", "Куриная грудка", "Lidl", 3.59, 500],
     ["price-chicken-penny", "chicken", "Куриная грудка", "Penny", 3.69, 500],
@@ -129,10 +105,60 @@ export const createDemoState = (): AppState => {
     ["price-yogurt-rewe", "yogurt", "Греческий йогурт", "Rewe", 1.99, 500],
     ["price-yogurt-edeka", "yogurt", "Греческий йогурт", "Edeka", 2.09, 500],
     ["price-yogurt-alnatura", "yogurt", "Греческий йогурт", "Alnatura", 2.79, 500],
-  ];
-  const prices: PriceEntry[] = PRICE_SHEET.map(([id, foodId, productName, store, packagePrice, packageSizeG]) =>
-    priceEntry(id, foodId, productName, store, packagePrice, packageSizeG),
-  );
+    ["price-milk-aldi", "milk", "Молоко 3.5%", "Aldi Nord", 1.09, 1000],
+    ["price-milk-lidl", "milk", "Молоко 3.5%", "Lidl", 1.09, 1000],
+    ["price-milk-penny", "milk", "Молоко 3.5%", "Penny", 1.15, 1000],
+    ["price-milk-netto", "milk", "Молоко 3.5%", "Netto", 1.19, 1000],
+    ["price-milk-kaufland", "milk", "Молоко 3.5%", "Kaufland", 1.19, 1000],
+    ["price-milk-rewe", "milk", "Молоко 3.5%", "Rewe", 1.29, 1000],
+    ["price-milk-edeka", "milk", "Молоко 3.5%", "Edeka", 1.39, 1000],
+    ["price-eggs-aldi", "eggs", "Яйца, 10 шт", "Aldi Nord", 2.19, 550],
+    ["price-eggs-lidl", "eggs", "Яйца, 10 шт", "Lidl", 2.29, 550],
+    ["price-eggs-penny", "eggs", "Яйца, 10 шт", "Penny", 2.39, 550],
+    ["price-eggs-netto", "eggs", "Яйца, 10 шт", "Netto", 2.45, 550],
+    ["price-eggs-kaufland", "eggs", "Яйца, 10 шт", "Kaufland", 2.49, 550],
+    ["price-eggs-rewe", "eggs", "Яйца, 10 шт", "Rewe", 2.69, 550],
+    ["price-eggs-edeka", "eggs", "Яйца, 10 шт", "Edeka", 2.79, 550],
+    ["price-apple-aldi", "apple", "Яблоки, 1 кг", "Aldi Nord", 1.79, 1000],
+    ["price-apple-lidl", "apple", "Яблоки, 1 кг", "Lidl", 1.89, 1000],
+    ["price-apple-penny", "apple", "Яблоки, 1 кг", "Penny", 1.99, 1000],
+    ["price-apple-netto", "apple", "Яблоки, 1 кг", "Netto", 2.09, 1000],
+    ["price-apple-kaufland", "apple", "Яблоки, 1 кг", "Kaufland", 2.19, 1000],
+    ["price-apple-rewe", "apple", "Яблоки, 1 кг", "Rewe", 2.49, 1000],
+    ["price-apple-edeka", "apple", "Яблоки, 1 кг", "Edeka", 2.79, 1000],
+    ["price-apple-alnatura", "apple", "Яблоки, 1 кг", "Alnatura", 3.49, 1000],
+];
+
+/** Демо-цены Гамбурга. Отдельная фабрика нужна ещё и миграции: старые
+ *  сохранения с московским демо переезжают на немецкий рынок. */
+export const createHamburgPrices = (date = dateKey()): PriceEntry[] =>
+  PRICE_SHEET.map(([id, productId, productName, store, packagePrice, packageSizeG]) => ({
+    id,
+    productId,
+    productName,
+    store,
+    city: "Гамбург",
+    currency: "EUR",
+    packagePrice,
+    packageSizeG,
+    date,
+  }));
+
+export const createDemoState = (): AppState => {
+  const meals: MealEntry[] = [];
+  const weights: WeightEntry[] = [];
+  const alcohol: AlcoholEntry[] = [];
+  const today = new Date();
+  for (let index = 13; index >= 0; index -= 1) {
+    const date = daysAgoKey(index);
+    meals.push(makeEntry(date, "breakfast", BASE_FOODS[0]!, 80), makeEntry(date, "breakfast", BASE_FOODS[1]!, 250), makeEntry(date, "breakfast", BASE_FOODS[2]!, 120), makeEntry(date, "lunch", BASE_FOODS[3]!, 180), makeEntry(date, "lunch", BASE_FOODS[4]!, 250), makeEntry(date, "lunch", BASE_FOODS[5]!, 120), makeEntry(date, "lunch", BASE_FOODS[6]!, 10), makeEntry(date, "dinner", BASE_FOODS[7]!, 180), makeEntry(date, "dinner", BASE_FOODS[8]!, 300), makeEntry(date, "dinner", BASE_FOODS[9]!, 150), makeEntry(date, "snack", BASE_FOODS[10]!, 40), makeEntry(date, "snack", BASE_FOODS[11]!, 150), makeEntry(date, "snack", BASE_FOODS[15]!, 50));
+    if (index === 8) meals.push(makeEntry(date, "snack", BASE_FOODS[16]!, 120, { junkFood: true }));
+    if (index === 2) alcohol.push({ id: `${date}-wine`, date, name: "Красное вино 0,2 л", volumeMl: 200, abv: 13, calories: Math.round(calculateAlcoholCalories(200, 13)) });
+    if (index === 9) alcohol.push({ id: `${date}-beer`, date, name: "Astra Pils 0,5 л", volumeMl: 500, abv: 4.9, calories: Math.round(calculateAlcoholCalories(500, 4.9)) });
+    if (index === 11) alcohol.push({ id: `${date}-wine`, date, name: "Красное вино 0,2 л", volumeMl: 200, abv: 13, calories: Math.round(calculateAlcoholCalories(200, 13)) });
+    weights.push({ id: `weight-${date}`, date, weightKg: Math.round((78 + Math.sin(index / 3) * 0.15 + (index % 3) * 0.05) * 10) / 10 });
+  }
+  const prices: PriceEntry[] = createHamburgPrices(dateKey(today));
   const presets: MealPreset[] = [{ id: "preset-breakfast", name: "Быстрый белковый завтрак", meal: "breakfast", entries: [{ foodId: "oats", name: "Овсянка", amountG: 80, ...scaleNutrition(380, 13, 7, 62, 1, 80), source: "database", junkFood: false }, { foodId: "whey", name: "Сывороточный протеин", amountG: 30, ...scaleNutrition(390, 78, 5, 7, 3, 30), source: "database", junkFood: false }] }];
   return { version: 1, profile: makeProfile(), foods: BASE_FOODS, customFoods: [], meals, presets, alcohol, weights, prices, recipes: RECIPES, programs: PROGRAMS, workoutLogs: [{ id: "log-demo", date: daysAgoKey(1), programId: "program-ppl", programName: "PPL — гипертрофия", sets: Array.from({ length: 4 }, (_, index) => ({ id: `set-${index}`, exercise: "Жим лёжа", weightKg: 70, reps: 8, rpe: 8 })) }], adjustments: [] };
 };

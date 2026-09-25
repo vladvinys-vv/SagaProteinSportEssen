@@ -43,10 +43,10 @@ describe("страница цен", () => {
     const { container } = renderPage();
     const summary = container.querySelector(".summary-grid") as HTMLElement;
     expect(summary).toHaveTextContent("Продуктов в наблюдении");
-    expect(summary.textContent).toMatch(/50 записей по 13 магазинам/);
-    expect(summary.textContent).toMatch(/28,01/);
+    expect(summary.textContent).toMatch(/72 записи по 13 магазинам/);
+    expect(summary.textContent).toMatch(/30,61/);
     expect(summary).toHaveTextContent("Aldi Nord");
-    expect(summary).toHaveTextContent("6 побед");
+    expect(summary).toHaveTextContent("9 побед");
     expect(summary).toHaveTextContent("denn's Biomarkt");
     expect(summary).toHaveTextContent("+168 % к лучшей цене");
   });
@@ -56,7 +56,7 @@ describe("страница цен", () => {
     const rows = [...container.querySelectorAll(".store-row")];
     expect(rows.length).toBeGreaterThanOrEqual(10);
     expect(rows[0]?.querySelector("strong")?.textContent).toBe("Aldi Nord");
-    expect(rows[0]?.textContent).toContain("6 из 7 побед");
+    expect(rows[0]?.textContent).toContain("9 из 10 побед");
     expect(rows[0]?.textContent).toContain("Гамбург");
 
     const fanciest = rows.find((row) => row.querySelector("strong")?.textContent === "denn's Biomarkt");
@@ -91,6 +91,16 @@ describe("страница цен", () => {
     await user.click(within(form).getByRole("button", { name: "Добавить цену" }));
 
     expect(container.querySelectorAll(".price-row")).toHaveLength(before);
+  });
+
+  it("сравнивает базовые продукты немецкой корзины", () => {
+    const { container } = renderPage();
+    const names = [...container.querySelectorAll(".comparison-row strong")].map((element) => element.textContent);
+
+    expect(names).toEqual(expect.arrayContaining(["Молоко 3.5%", "Яйца, 10 шт", "Яблоки, 1 кг"]));
+    const milk = rowFor(container, "Молоко 3.5%");
+    expect(within(milk.querySelector(".offer.is-cheapest") as HTMLElement).getByText("Aldi Nord")).toBeInTheDocument();
+    expect(within(milk.querySelector(".offer.is-priciest") as HTMLElement).getByText("Edeka")).toBeInTheDocument();
   });
 
   it("подставляет Гамбург и подсказывает немецкие сети", () => {
