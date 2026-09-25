@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { openSection } from "./helpers";
+import { openSection, seedCleanState } from "./helpers";
 
 test.describe("Форма — питание", () => {
   test.beforeEach(async ({ page }) => {
@@ -8,6 +8,9 @@ test.describe("Форма — питание", () => {
   });
 
   test("добавляет продукт из базы в дневник", async ({ page }) => {
+    await seedCleanState(page);
+    await page.goto("/nutrition");
+
     const searchCard = page.locator("section", { has: page.getByRole("heading", { name: "Добавить продукт" }) });
     await searchCard.getByPlaceholder("Например, курица или рис").fill("Овсянка");
     await searchCard.getByRole("button", { name: /Овсянка/ }).click();
@@ -15,7 +18,7 @@ test.describe("Форма — питание", () => {
     await searchCard.getByLabel(/Количество/).fill("150");
     await searchCard.getByRole("button", { name: "Добавить в дневник" }).click();
 
-    await expect(page.getByRole("button", { name: "Удалить Овсянка" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Удалить Овсянка" })).toHaveCount(1);
     // 380 ккал / 100 г × 150 г = 570 ккал
     await expect(page.locator(".nutrition-mini")).toContainText("570");
   });
@@ -45,8 +48,8 @@ test.describe("Форма — питание", () => {
     const alcoholCard = page.locator("section", { has: page.getByRole("heading", { name: "Алкоголь" }) });
     await alcoholCard.getByRole("button", { name: /Радлер 0,5 л/ }).click();
 
-    // 0,5 л радлера (2,5 %) ≈ 70 ккал этанола
-    await expect(alcoholCard.getByRole("button", { name: "Удалить Радлер 0,5 л" })).toBeVisible();
+    // 0,5 л радлера (2,5 %) ≈ 70 ккал этанола: запись появляется в дневнике
+    await expect(page.getByRole("button", { name: "Удалить Радлер 0,5 л" })).toBeVisible();
     await expect(page.locator(".nutrition-mini")).toContainText("70 ккал");
   });
 

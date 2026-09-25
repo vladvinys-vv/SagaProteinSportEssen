@@ -17,7 +17,22 @@ export function useFocusSection(): void {
     const element = document.getElementById(focus);
     if (!element) return;
     element.scrollIntoView({ behavior: "smooth", block: "start" });
-    const field = element.querySelector<HTMLElement>("input, select, button, textarea");
-    field?.focus({ preventScroll: true });
+
+    // Карточка может указать, куда вести фокус: в журнале это вес подхода,
+    // в замере веса — само поле веса, а не дата.
+    const focusField = () => {
+      const field = element.querySelector<HTMLElement>("[data-focus-target]")
+        ?? element.querySelector<HTMLElement>("input, select, button, textarea");
+      field?.focus({ preventScroll: true });
+    };
+    focusField();
+
+    // Часть карточек наполняется в собственных эффектах (журнал тренировки
+    // разворачивает подходы после монтирования) и заменяет узлы — тогда фокус
+    // теряется. Повторяем его, если фокус так и не оказался внутри карточки.
+    const raf = requestAnimationFrame(() => {
+      if (!element.contains(document.activeElement)) focusField();
+    });
+    return () => cancelAnimationFrame(raf);
   }, [location]);
 }

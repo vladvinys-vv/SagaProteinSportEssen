@@ -3,9 +3,10 @@ import { dismissOnboarding } from "./helpers";
 
 test.describe("Форма — аналитика", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/");
-    await dismissOnboarding(page);
+    // Демо-профиль не завершён, поэтому окно онбординга появляется после каждой
+    // полной загрузки — закрываем его уже на самой странице аналитики.
     await page.goto("/analytics");
+    await dismissOnboarding(page);
   });
 
   test("показывает сводку периода и график веса", async ({ page }) => {

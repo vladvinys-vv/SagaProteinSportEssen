@@ -49,7 +49,9 @@ export default function WorkoutPage() {
   const program = state.programs.find((item) => item.id === programId) ?? state.programs[0];
   const [dayIndex, setDayIndex] = useState(0);
   const [date, setDate] = useState(dateKey());
-  const [sets, setSets] = useState<WorkoutSet[]>([{ id: "new-1", exercise: "", weightKg: 0, reps: 0, rpe: 8 }]);
+  // Первая отрисовка сразу с подходами дня: если рисовать пустую строку-черновик
+  // и подставлять план эффектом, введённые значения теряются при перерисовке.
+  const [sets, setSets] = useState<WorkoutSet[]>(() => freshSets(state.programs[0]?.days[0]));
   const [newExercise, setNewExercise] = useState({ name: "", sets: 3, reps: "8–12", note: "" });
   const [builderType, setBuilderType] = useState<"fiveThreeOne" | "juggernaut">("fiveThreeOne");
   const [builder, setBuilder] = useState<{ trainingMaxPercent: number; accessory: ProgramAccessory; mode: ProgramMode; lifts: ProgramLiftInput[] }>(() => ({
@@ -79,10 +81,10 @@ export default function WorkoutPage() {
   // а введённые значения хранятся отдельно для каждого дня и программы.
   const setsByDay = useRef(new Map<string, WorkoutSet[]>());
   const daySignature = `${program?.id ?? ""}|${day?.id ?? "day"}`;
-  const signatureRef = useRef<string | null>(null);
+  const signatureRef = useRef<string | null>(`${state.programs[0]?.id ?? ""}|${state.programs[0]?.days[0]?.id ?? "day"}`);
   useEffect(() => {
     if (signatureRef.current === daySignature) return;
-    if (signatureRef.current !== null) setsByDay.current.set(signatureRef.current, sets);
+    setsByDay.current.set(signatureRef.current ?? daySignature, sets);
     signatureRef.current = daySignature;
     setSets(setsByDay.current.get(daySignature) ?? freshSets(day));
   }, [daySignature, day, sets]);
@@ -327,7 +329,7 @@ export default function WorkoutPage() {
             <div>
               <span>{index + 1}</span>
               <input value={set.exercise} onChange={(event) => setSets(sets.map((item, itemIndex) => itemIndex === index ? { ...item, exercise: event.target.value } : item))} placeholder="Упражнение" />
-              <input type="number" min="0" step="0.5" value={set.weightKg} onChange={(event) => setSets(sets.map((item, itemIndex) => itemIndex === index ? { ...item, weightKg: Number(event.target.value) } : item))} placeholder="Кг" />
+              <input type="number" min="0" step="0.5" data-focus-target={index === 0 ? "" : undefined} value={set.weightKg} onChange={(event) => setSets(sets.map((item, itemIndex) => itemIndex === index ? { ...item, weightKg: Number(event.target.value) } : item))} placeholder="Кг" />
               <input type="number" min="0" value={set.reps} onChange={(event) => setSets(sets.map((item, itemIndex) => itemIndex === index ? { ...item, reps: Number(event.target.value) } : item))} placeholder="Повторы" />
               <input type="number" min="1" max="10" step="0.5" value={set.rpe ?? 8} onChange={(event) => setSets(sets.map((item, itemIndex) => itemIndex === index ? { ...item, rpe: Number(event.target.value) } : item))} placeholder="RPE" />
               <button className="icon-button danger" type="button" aria-label="Удалить подход" onClick={() => setSets(sets.filter((_, itemIndex) => itemIndex !== index))}><Trash2 size={14} /></button>

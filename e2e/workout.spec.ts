@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { openSection } from "./helpers";
+import { openSection, tapElement } from "./helpers";
 
 test.describe("Форма — тренировки", () => {
   test.beforeEach(async ({ page }) => {
@@ -30,19 +30,22 @@ test.describe("Форма — тренировки", () => {
     await expect(pendingSets.first()).toBeVisible();
     await pendingSets.first().getByPlaceholder("Кг").fill("80");
     await pendingSets.first().getByPlaceholder("Повторы").fill("8");
-    await journal.getByRole("button", { name: "Сохранить тренировку" }).click();
+    await tapElement(page, journal.getByRole("button", { name: "Сохранить тренировку" }));
 
     await expect(page.locator(".workout-history .history-row").first()).toContainText("80×8");
   });
 
   test("добавляет упражнение в выбранный день", async ({ page }) => {
     const dayCard = page.locator("section", { has: page.locator(".exercise-list") });
-    const initialCount = await dayCard.locator(".exercise-row").count();
+    // Ждём, пока план дня отрисуется: иначе count() вернёт 0 до рендера.
+    const rows = dayCard.locator(".exercise-row");
+    await expect(rows.first()).toBeVisible();
+    const initialCount = await rows.count();
 
     await dayCard.getByPlaceholder("Например, тяга блока").fill("Тяга блока");
-    await dayCard.getByRole("button", { name: "Добавить", exact: true }).click();
+    await tapElement(page, dayCard.getByRole("button", { name: "Добавить", exact: true }));
 
-    await expect(dayCard.locator(".exercise-row")).toHaveCount(initialCount + 1);
+    await expect(rows).toHaveCount(initialCount + 1);
     await expect(dayCard.getByText("Тяга блока").first()).toBeVisible();
   });
 
@@ -50,8 +53,8 @@ test.describe("Форма — тренировки", () => {
     const builder = page.locator("section", { has: page.getByRole("heading", { name: "Пользовательская программа" }) });
     await builder.getByLabel("Название программы").fill("Три дня в неделю");
     await builder.locator(".constructor-form").getByPlaceholder("Например, тяга блока").fill("Присед");
-    await builder.getByRole("button", { name: "Добавить упражнение" }).click();
-    await builder.getByRole("button", { name: "Сохранить программу" }).click();
+    await tapElement(page, builder.getByRole("button", { name: "Добавить упражнение" }));
+    await tapElement(page, builder.getByRole("button", { name: "Сохранить программу" }));
 
     await expect(page.locator(".program-card", { hasText: "Три дня в неделю" })).toHaveCount(1);
   });

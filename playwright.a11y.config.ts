@@ -18,6 +18,9 @@ export default defineConfig({
     baseURL: BASE_URL,
     locale: "ru-RU",
     trace: "on-first-retry",
+    launchOptions: process.env.E2E_CHROMIUM_PATH
+      ? { executablePath: process.env.E2E_CHROMIUM_PATH, args: ["--no-sandbox", "--disable-dev-shm-usage"] }
+      : undefined,
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: process.env.E2E_BASE_URL

@@ -27,7 +27,8 @@ test.describe("Форма — профиль", () => {
     await page.getByRole("button", { name: "Сохранить шаги" }).click();
 
     await page.getByRole("link", { name: "Форма" }).first().click();
-    await expect(page.locator(".summary-card", { hasText: "Шаги" })).toContainText("12.345");
+    // Разделитель тысяч в ru-RU зависит от ICU: точка, пробел или узкий пробел.
+    await expect(page.locator(".summary-card", { hasText: "Шаги" })).toContainText(/12[\s.\u00A0\u202F]?345/);
   });
 
   test("добавляет замер веса", async ({ page }) => {

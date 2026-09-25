@@ -64,8 +64,25 @@ test.describe("Форма — оболочка приложения", () => {
     await sheet.getByRole("button", { name: /Внести алкоголь/ }).click();
     await expect(page).toHaveURL(/\/nutrition$/);
     await expect(sheet).toBeHidden();
-    // Карточка алкоголя в фокусе: первое поле формы готово к вводу.
-    await expect(page.locator("#alcohol input").first()).toBeFocused();
+    // Один тап — и фокус уже на привычной порции: Enter записывает напиток.
+    await expect(page.locator("#alcohol [data-focus-target]")).toBeFocused();
+  });
+
+  test("каждое быстрое действие ставит фокус в нужное поле", async ({ page }) => {
+    await dismissOnboarding(page);
+    const targets = [
+      { action: /Добавить продукт/, url: /\/nutrition$/, target: "#add-food [data-focus-target]" },
+      { action: /Вкусняшка за серию/, url: /\/nutrition$/, target: "#treats [data-focus-target]" },
+      { action: /Записать подход/, url: /\/workouts$/, target: "#journal [data-focus-target]" },
+      { action: /Замер веса/, url: /\/profile$/, target: "#weight [data-focus-target]" },
+    ];
+
+    for (const { action, url, target } of targets) {
+      await page.getByRole("button", { name: "Быстрые действия" }).click();
+      await page.getByRole("dialog", { name: "Быстрые действия" }).getByRole("button", { name: action }).click();
+      await expect(page).toHaveURL(url);
+      await expect(page.locator(target).first()).toBeFocused();
+    }
   });
 
   test("ведёт по ссылкам аналитики и возвращает на главную", async ({ page }) => {

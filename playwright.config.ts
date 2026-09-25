@@ -3,6 +3,15 @@ import { defineConfig, devices } from "@playwright/test";
 const PORT = 3100;
 const BASE_URL = process.env.E2E_BASE_URL ?? `http://localhost:${PORT}`;
 
+/**
+ * Путь к своему Chromium: удобно там, где скачивание браузеров Playwright
+ * недоступно (офлайн-сборка, системный пакет, контейнер без CDN).
+ */
+const CHROMIUM_PATH = process.env.E2E_CHROMIUM_PATH;
+const chromiumLaunch: { executablePath: string; args: string[] } | undefined = CHROMIUM_PATH
+  ? { executablePath: CHROMIUM_PATH, args: ["--no-sandbox", "--disable-dev-shm-usage"] }
+  : undefined;
+
 export default defineConfig({
   testDir: "e2e",
   // Проверки доступности живут в отдельном конфиге: npm run test:a11y
@@ -20,12 +29,20 @@ export default defineConfig({
     timezoneId: "Europe/Berlin",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
+    launchOptions: chromiumLaunch,
   },
-  projects: [
-    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
-    { name: "firefox", use: { ...devices["Desktop Firefox"] } },
-    { name: "mobile", use: { ...devices["Pixel 7"] } },
-  ],
+  // При подмене бинарника доступен только Chromium: firefox не запустится,
+  // а мобильный проект тоже chromium-based и работает.
+  projects: CHROMIUM_PATH
+    ? [
+        { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+        { name: "mobile", use: { ...devices["Pixel 7"] } },
+      ]
+    : [
+        { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+        { name: "firefox", use: { ...devices["Desktop Firefox"] } },
+        { name: "mobile", use: { ...devices["Pixel 7"] } },
+      ],
   webServer: process.env.E2E_BASE_URL
     ? undefined
     : {

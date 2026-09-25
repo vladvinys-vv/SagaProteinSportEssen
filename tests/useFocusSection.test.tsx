@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import { useEffect, useState } from "react";
 import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useFocusSection } from "@/hooks/useFocusSection";
@@ -43,5 +44,33 @@ describe("переход к секции из быстрых действий", 
   it("молча пропускает неизвестный id", async () => {
     renderProbe("unknown-section");
     await waitFor(() => expect(screen.getByLabelText("Название")).not.toHaveFocus());
+  });
+});
+
+describe("карточка наполняется после перехода", () => {
+  beforeEach(() => {
+    Element.prototype.scrollIntoView = vi.fn();
+  });
+
+  it("возвращает фокус, если поле заменили при перерисовке", async () => {
+    const Deferred = () => {
+      useFocusSection();
+      const [ready, setReady] = useState(false);
+      useEffect(() => {
+        setReady(true);
+      }, []);
+      return (
+        <section id="journal">
+          {ready ? <input key="plan" aria-label="Кг" /> : <input key="draft" aria-label="Кг" />}
+        </section>
+      );
+    };
+    render(
+      <MemoryRouter initialEntries={[{ pathname: "/workouts", state: { focus: "journal" } }]}>
+        <Deferred />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(screen.getByLabelText("Кг")).toHaveFocus());
   });
 });
