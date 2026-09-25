@@ -85,13 +85,15 @@ describe("страница питания", () => {
     const alcoholCard = cardByHeading("Алкоголь");
     await user.clear(within(alcoholCard).getByLabelText("Объём, мл"));
     await user.type(within(alcoholCard).getByLabelText("Объём, мл"), "330");
+    await user.clear(within(alcoholCard).getByLabelText("Крепость, %"));
+    await user.type(within(alcoholCard).getByLabelText("Крепость, %"), "12.5");
     await user.click(within(alcoholCard).getByRole("button", { name: "Добавить напиток" }));
 
     // 330 мл × 12.5 % × 0.789 × 7.1 ≈ 231 ккал
     const summary = document.querySelector(".nutrition-mini");
     expect(summary).not.toBeNull();
     expect(within(summary as HTMLElement).getByText("231 ккал")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Удалить Красное вино" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Удалить Пильзнер 0,5 л" })).toBeInTheDocument();
   });
 });
 
@@ -133,6 +135,19 @@ describe("вкусняшки и алкоголь", () => {
 
     expect(within(card).getByRole("status")).toHaveTextContent("добавлено в перекус");
     expect(screen.getByRole("button", { name: /Удалить .* вкусняшка/ })).toBeInTheDocument();
+  });
+
+  it("записывает напиток одним тапом по пресету", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    const alcoholCard = cardByHeading("Алкоголь");
+    await user.click(within(alcoholCard).getByRole("button", { name: /Радлер 0,5 л/ }));
+
+    // 500 мл × 2.5 % × 0.789 × 7.1 ≈ 70 ккал
+    const summary = document.querySelector(".nutrition-mini");
+    expect(within(summary as HTMLElement).getByText("70 ккал")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Удалить Радлер 0,5 л" })).toBeInTheDocument();
   });
 
   it("считает, сколько прогресса стоит алкоголь", async () => {

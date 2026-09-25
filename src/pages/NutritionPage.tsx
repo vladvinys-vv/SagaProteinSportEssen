@@ -16,6 +16,14 @@ function nutritionFor(food: Food, amount: number) {
   return scaleNutrition(food.calories, food.protein, food.fat, food.carbs, food.sugar, amount);
 }
 
+/** Привычные порции: тап — и напиток уже в счётчике. */
+const ALCOHOL_PRESETS = [
+  { name: "Пильзнер 0,5 л", volumeMl: 500, abv: 4.9 },
+  { name: "Радлер 0,5 л", volumeMl: 500, abv: 2.5 },
+  { name: "Красное вино 0,2 л", volumeMl: 200, abv: 13 },
+  { name: "Глинтвейн 0,2 л", volumeMl: 200, abv: 10 },
+];
+
 export default function NutritionPage() {
   const { state, updateState } = useAppState();
   useFocusSection();
@@ -29,7 +37,7 @@ export default function NutritionPage() {
   const [barcodeMessage, setBarcodeMessage] = useState("");
   const [barcodeSource, setBarcodeSource] = useState<MealEntry["source"]>("database");
   const [custom, setCustom] = useState<{ name: string; calories: number; protein: number; fat: number; carbs: number; sugar: number; unit: Food["unit"] }>({ name: "", calories: 0, protein: 0, fat: 0, carbs: 0, sugar: 0, unit: "g" });
-  const [alcohol, setAlcohol] = useState({ name: "Красное вино", volumeMl: 150, abv: 12.5 });
+  const [alcohol, setAlcohol] = useState({ name: "Пильзнер 0,5 л", volumeMl: 500, abv: 4.9 });
   const [presetName, setPresetName] = useState("");
   const [presetMeal, setPresetMeal] = useState<MealType>("breakfast");
   const [priceCategory, setPriceCategory] = useState<PriceCategory>("budget");
@@ -101,10 +109,11 @@ export default function NutritionPage() {
     updateState({ presets: [...state.presets, { id: `preset-${Date.now()}`, name: presetName.trim(), meal: presetMeal, entries: presetEntries }] });
     setPresetName("");
   };
-  const addAlcohol = () => {
-    if (alcohol.volumeMl <= 0 || alcohol.abv <= 0) return;
-    updateState({ alcohol: [{ id: makeId(), date, name: alcohol.name, volumeMl: alcohol.volumeMl, abv: alcohol.abv, calories: Math.round(calculateAlcoholCalories(alcohol.volumeMl, alcohol.abv)) }, ...state.alcohol] });
+  const addDrink = (drink: { name: string; volumeMl: number; abv: number }) => {
+    if (drink.volumeMl <= 0 || drink.abv <= 0) return;
+    updateState({ alcohol: [{ id: makeId(), date, name: drink.name, volumeMl: drink.volumeMl, abv: drink.abv, calories: Math.round(calculateAlcoholCalories(drink.volumeMl, drink.abv)) }, ...state.alcohol] });
   };
+  const addAlcohol = () => addDrink(alcohol);
   const addRecipe = (recipe: Recipe) => {
     const entry: MealEntry = { id: makeId(), date, meal, name: recipe.name, amountG: 350, calories: recipe.calories, protein: recipe.protein, fat: recipe.fat, carbs: recipe.carbs, sugar: 0, source: "preset", junkFood: false };
     updateState({ meals: [entry, ...state.meals] });
@@ -147,7 +156,7 @@ export default function NutritionPage() {
     <Card><SectionHeader eyebrow="Дневник" title={date === dateKey() ? "Сегодня" : date} action={<span className="day-result">{entries.length + alcoholEntries.length} записей</span>} /><div className="meal-groups">{mealOrder.map((type) => { const group = entries.filter((entry) => entry.meal === type); if (!group.length) return null; const groupTotals = group.reduce((result, entry) => ({ calories: result.calories + entry.calories, protein: result.protein + entry.protein }), { calories: 0, protein: 0 }); return <div key={type}><div className="meal-group-title"><span>{mealLabels[type]}</span><strong>{Math.round(groupTotals.calories)} ккал · {Math.round(groupTotals.protein)} г белка</strong></div>{group.map((entry) => <div className="meal-entry" key={entry.id}><div><strong>{entry.name} {entry.junkFood && <em>джанк</em>}</strong><small>{entry.source === "custom" ? "свой продукт" : "база"} {entry.amountG} {entry.foodId?.startsWith("custom-") || entry.source === "custom" ? "свой продукт" : "продукт"}</small></div><button className="icon-button danger" type="button" aria-label={`Удалить ${entry.name}`} onClick={() => updateState({ meals: state.meals.filter((item) => item.id !== entry.id) })}><Trash2 size={14} /></button></div>)}</div>; })}{alcoholEntries.map((entry) => <div className="meal-entry" key={entry.id}><div><strong>{entry.name}</strong><small>{entry.volumeMl} мл · {entry.abv}% · {Math.round(entry.calories)} ккал алкоголя</small></div><button className="icon-button danger" type="button" aria-label={`Удалить ${entry.name}`} onClick={() => updateState({ alcohol: state.alcohol.filter((item) => item.id !== entry.id) })}><Trash2 size={14} /></button></div>)}</div>{entries.length === 0 && alcoholEntries.length === 0 && <EmptyState title="Пока пусто" text="Добавь первый продукт, напиток или выбери готовый пресет." />}</Card>
     <div className="two-column">
       <Card><SectionHeader eyebrow="Готовые сценарии" title="Пресеты" /><div className="preset-list">{state.presets.map((preset) => <div className="preset-item" key={preset.id}><div><strong>{preset.name}</strong><small>{mealLabels[preset.meal]} · {preset.entries.length} продукта · {Math.round(preset.entries.reduce((total, entry) => total + entry.calories, 0))} ккал</small></div><div className="preset-actions"><button className="button ghost" type="button" onClick={() => addPreset(preset)}>Добавить</button><button className="icon-button danger" type="button" aria-label={`Удалить пресет ${preset.name}`} onClick={() => removePreset(preset.id)}><Trash2 size={14} /></button></div></div>)}</div><div className="preset-save-form"><label><span>Название нового пресета</span><input value={presetName} onChange={(event) => setPresetName(event.target.value)} placeholder="Например, рабочий обед" /></label><label><span>Сохранить приём</span><select value={presetMeal} onChange={(event) => setPresetMeal(event.target.value as MealType)}>{mealOrder.map((type) => <option key={type} value={type}>{mealLabels[type]}</option>)}</select></label><button className="button secondary full" type="button" disabled={!presetName.trim() || entries.filter((entry) => entry.meal === presetMeal).length === 0} onClick={savePreset}><Plus size={16} /> Сохранить текущий приём</button></div></Card>
-      <Card id="alcohol"><SectionHeader eyebrow="Напитки" title="Алкоголь" /><div className="form-grid"><label><span>Название</span><input value={alcohol.name} onChange={(event) => setAlcohol({ ...alcohol, name: event.target.value })} /></label><label><span>Объём, мл</span><input type="number" min="1" value={alcohol.volumeMl} onChange={(event) => setAlcohol({ ...alcohol, volumeMl: Number(event.target.value) })} /></label><label><span>Крепость, %</span><input type="number" min="0.1" max="100" step="0.1" value={alcohol.abv} onChange={(event) => setAlcohol({ ...alcohol, abv: Number(event.target.value) })} /></label></div><button className="button secondary full" type="button" onClick={addAlcohol}><Plus size={17} /> Добавить напиток</button><div className="alcohol-inline"><Wine size={16} /><span>Калории алкоголя учитываются в дневной сумме и adherence, но не входят в макросы еды.</span></div>
+      <Card id="alcohol"><SectionHeader eyebrow="Напитки" title="Алкоголь" /><div className="alcohol-presets">{ALCOHOL_PRESETS.map((drink) => <button className="button ghost" type="button" key={drink.name} onClick={() => addDrink(drink)}><Wine size={15} /> {drink.name} · {drink.abv} %</button>)}</div><div className="form-grid"><label><span>Название</span><input value={alcohol.name} onChange={(event) => setAlcohol({ ...alcohol, name: event.target.value })} /></label><label><span>Объём, мл</span><input type="number" min="1" value={alcohol.volumeMl} onChange={(event) => setAlcohol({ ...alcohol, volumeMl: Number(event.target.value) })} /></label><label><span>Крепость, %</span><input type="number" min="0.1" max="100" step="0.1" value={alcohol.abv} onChange={(event) => setAlcohol({ ...alcohol, abv: Number(event.target.value) })} /></label></div><button className="button secondary full" type="button" onClick={addAlcohol}><Plus size={17} /> Добавить напиток</button><div className="alcohol-inline"><Wine size={16} /><span>Пресеты — привычные порции: 0,5 л пива, 0,5 л радлера, 0,2 л вина, 0,2 л глинтвейна. Калории алкоголя учитываются в дневной сумме и adherence, но не входят в макросы еды.</span></div>
         <div className={`stagnation-card is-${alcoholStagnation.status}`}>
           <div className="stagnation-head"><Flame size={18} /><strong>Что это стоит прогрессу</strong><span className="status-tag">{alcoholStagnation.status === "risk" ? "тормозит" : alcoholStagnation.status === "watch" ? "под наблюдением" : "чисто"}</span></div>
           <div className="stagnation-grid">

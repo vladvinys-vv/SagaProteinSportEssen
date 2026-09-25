@@ -14,8 +14,13 @@ describe("демо- и пустое состояние", () => {
     expect(state.recipes.length).toBeGreaterThan(0);
     expect(state.programs.length).toBeGreaterThan(0);
     expect(state.workoutLogs).toHaveLength(1);
-    expect(state.prices.length).toBeGreaterThanOrEqual(15);
-    expect(new Set(state.prices.map((entry) => entry.store)).size).toBeGreaterThanOrEqual(5);
+    expect(state.prices.length).toBeGreaterThanOrEqual(40);
+    expect(new Set(state.prices.map((entry) => entry.store)).size).toBeGreaterThanOrEqual(10);
+    // Немецкий рынок: евро, Гамбург и ни одной сети из другого города.
+    expect(new Set(state.prices.map((entry) => entry.currency))).toEqual(new Set(["EUR"]));
+    expect(new Set(state.prices.map((entry) => entry.city))).toEqual(new Set(["Гамбург"]));
+    expect(state.profile.currency).toBe("EUR");
+    expect(state.prices.every((entry) => entry.packageSizeG !== undefined || entry.packageSizeMl !== undefined)).toBe(true);
 
     const ids = state.meals.map((entry) => entry.id);
     expect(new Set(ids).size).toBe(ids.length);

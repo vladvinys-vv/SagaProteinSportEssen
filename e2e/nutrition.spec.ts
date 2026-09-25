@@ -38,7 +38,16 @@ test.describe("Форма — питание", () => {
     await alcoholCard.getByRole("button", { name: "Добавить напиток" }).click();
 
     await expect(page.locator(".nutrition-mini")).toContainText("ккал");
-    await expect(page.getByRole("button", { name: "Удалить Красное вино" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Удалить Пильзнер 0,5 л" })).toBeVisible();
+  });
+
+  test("добавляет напиток пресетом в один тап", async ({ page }) => {
+    const alcoholCard = page.locator("section", { has: page.getByRole("heading", { name: "Алкоголь" }) });
+    await alcoholCard.getByRole("button", { name: /Радлер 0,5 л/ }).click();
+
+    // 0,5 л радлера (2,5 %) ≈ 70 ккал этанола
+    await expect(alcoholCard.getByRole("button", { name: "Удалить Радлер 0,5 л" })).toBeVisible();
+    await expect(page.locator(".nutrition-mini")).toContainText("70 ккал");
   });
 
   test("сохраняет пресет из дневника", async ({ page }) => {

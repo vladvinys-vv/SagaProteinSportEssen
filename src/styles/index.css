@@ -2759,6 +2759,18 @@ details ol {
   }
 }
 
+.alcohol-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.alcohol-presets .button {
+  font-size: 13px;
+  padding: 8px 12px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

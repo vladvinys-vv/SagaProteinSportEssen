@@ -49,6 +49,10 @@ test.describe("Форма — оболочка приложения", () => {
     await openSection(page, "Цены");
     await expect(page.getByRole("heading", { name: "Где дешевле, а где изысканнее" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Магазины по кошельку" })).toBeVisible();
+    // Немецкий рынок: сети Гамбурга и цены в евро
+    await expect(page.getByText("Aldi Nord").first()).toBeVisible();
+    await expect(page.getByText("denn's Biomarkt").first()).toBeVisible();
+    await expect(page.locator(".summary-grid")).toContainText("€");
   });
 
   test("открывает быстрые действия и уводит к нужной форме", async ({ page }) => {

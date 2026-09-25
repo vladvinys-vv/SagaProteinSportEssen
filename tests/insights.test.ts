@@ -31,8 +31,8 @@ const priceEntry = (id: string, productId: string, productName: string, store: s
   productId,
   productName,
   store,
-  city: "Москва",
-  currency: "RUB",
+  city: "Гамбург",
+  currency: "EUR",
   packagePrice,
   packageSizeG,
   date: dateKey(),
@@ -118,22 +118,22 @@ describe("лестница вкусняшек", () => {
 
 describe("сравнение цен по магазинам", () => {
   const prices: PriceEntry[] = [
-    priceEntry("a", "chicken", "Куриная грудка", "Лента", 380),
-    priceEntry("b", "chicken", "Куриная грудка", "Пятёрочка", 400),
-    priceEntry("c", "chicken", "Куриная грудка", "Азбука вкуса", 900),
-    priceEntry("d", "oats", "Овсянка", "Дикси", 128, 800),
-    priceEntry("e", "oats", "Овсянка", "Азбука вкуса", 288, 800),
+    priceEntry("a", "chicken", "Куриная грудка", "Aldi Nord", 3.49, 500),
+    priceEntry("b", "chicken", "Куриная грудка", "Rewe", 4.29, 500),
+    priceEntry("c", "chicken", "Куриная грудка", "Alnatura", 11.99, 500),
+    priceEntry("d", "oats", "Овсянка", "Lidl", 0.79, 500),
+    priceEntry("e", "oats", "Овсянка", "denn's Biomarkt", 2.29, 500),
   ];
 
   it("находит дешёвый и изысканный вариант по каждому продукту", () => {
     const [chicken] = getPriceComparisons(prices);
     expect(chicken.key).toBe("chicken");
-    expect(chicken.cheapest.store).toBe("Лента");
-    expect(chicken.cheapest.normalizedPrice).toBeCloseTo(38, 5);
-    expect(chicken.priciest.store).toBe("Азбука вкуса");
-    expect(chicken.spreadPercent).toBe(137);
-    expect(chicken.savings).toBe(520);
-    expect(chicken.average).toBeCloseTo(56, 5);
+    expect(chicken.cheapest.store).toBe("Aldi Nord");
+    expect(chicken.cheapest.normalizedPrice).toBeCloseTo(0.698, 5);
+    expect(chicken.priciest.store).toBe("Alnatura");
+    expect(chicken.spreadPercent).toBe(244);
+    expect(chicken.savings).toBe(8.5);
+    expect(chicken.average).toBeCloseTo(1.318, 5);
   });
 
   it("сортирует продукты по разбросу цен и ранжирует магазины", () => {
@@ -141,24 +141,25 @@ describe("сравнение цен по магазинам", () => {
     expect(comparisons[0]!.key).toBe("chicken");
 
     const rankings = getStoreRankings(prices);
-    // У «Дикси» и «Ленты» по одной победе — обе впереди «Азбуки вкуса»
-    expect(rankings[0]!.wins).toBe(1);
-    expect(["Дикси", "Лента"]).toContain(rankings[0]!.store);
-    expect(rankings.slice(0, 2).map((item) => item.store).sort()).toEqual(["Дикси", "Лента"]);
-    expect(rankings.find((item) => item.store === "Азбука вкуса")!.wins).toBe(0);
-    expect(rankings.find((item) => item.store === "Азбука вкуса")!.averageIndex).toBeGreaterThan(150);
+    // Дешёвые Aldi Nord и Lidl выигрывают по одному продукту, био-маркет — ни одного
+    expect(rankings[0]!.store).toBe("Aldi Nord");
+    expect(rankings.slice(0, 3).map((item) => item.store).sort()).toEqual(["Aldi Nord", "Lidl", "Rewe"]);
+    expect(rankings.find((item) => item.store === "Rewe")!.wins).toBe(0);
+    expect(rankings.find((item) => item.store === "Alnatura")!.wins).toBe(0);
+    expect(rankings.find((item) => item.store === "Alnatura")!.averageIndex).toBeGreaterThan(150);
+    expect(rankings.find((item) => item.store === "denn's Biomarkt")!.averageIndex).toBeGreaterThan(250);
   });
 
   it("считает экономию при покупке по лучшим ценам", () => {
     const savings = getShoppingSavings(prices);
     expect(savings.products).toBe(2);
-    expect(savings.savings).toBe(520 + 160);
-    expect(savings.stores.sort()).toEqual(["Дикси", "Лента"]);
+    expect(savings.savings).toBeCloseTo(8.5 + 1.5, 5);
+    expect(savings.stores.sort()).toEqual(["Aldi Nord", "Lidl"]);
   });
 
   it("определяет доминирующую валюту наблюдений", () => {
-    expect(getDominantCurrency(prices)).toBe("RUB");
-    expect(getDominantCurrency([...prices, { ...priceEntry("f", "x", "X", "store", 10), currency: "EUR", id: "f" }])).toBe("RUB");
-    expect(getDominantCurrency([])).toBe("RUB");
+    expect(getDominantCurrency(prices)).toBe("EUR");
+    expect(getDominantCurrency([...prices, { ...priceEntry("f", "x", "X", "store", 10), currency: "RUB", id: "f" }])).toBe("EUR");
+    expect(getDominantCurrency([])).toBe("EUR");
   });
 });

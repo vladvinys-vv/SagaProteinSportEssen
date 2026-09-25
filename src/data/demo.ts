@@ -48,7 +48,7 @@ export const PROGRAMS: WorkoutProgram[] = [
 ];
 
 const makeEntry = (date: string, meal: MealType, food: Food, amountG: number, extra: Partial<MealEntry> = {}): MealEntry => ({ id: `${date}-${meal}-${food.id}-${amountG}`, date, meal, foodId: food.id, name: food.name, amountG, ...scaleNutrition(food.calories, food.protein, food.fat, food.carbs, food.sugar, amountG), source: "database", junkFood: false, barcode: food.barcode, ...extra });
-const makeProfile = (): Profile => ({ completed: false, weightKg: 78, heightCm: 180, age: 30, sex: "male", goal: "recomp", currency: "RUB", calorieAdjustment: GOAL_CALORIE_ADJUSTMENTS.recomp, proteinGPerKg: 2, fatGPerKg: 0.8, sugarLimitG: 40, activityHours: { lying: 11, sitting: 9, standing: 3, training: 1 }, steps: 8200 });
+const makeProfile = (): Profile => ({ completed: false, weightKg: 78, heightCm: 180, age: 30, sex: "male", goal: "recomp", currency: "EUR", calorieAdjustment: GOAL_CALORIE_ADJUSTMENTS.recomp, proteinGPerKg: 2, fatGPerKg: 0.8, sugarLimitG: 40, activityHours: { lying: 11, sitting: 9, standing: 3, training: 1 }, steps: 8200 });
 
 export const createDemoState = (): AppState => {
   const meals: MealEntry[] = [];
@@ -59,42 +59,80 @@ export const createDemoState = (): AppState => {
     const date = daysAgoKey(index);
     meals.push(makeEntry(date, "breakfast", BASE_FOODS[0]!, 80), makeEntry(date, "breakfast", BASE_FOODS[1]!, 250), makeEntry(date, "breakfast", BASE_FOODS[2]!, 120), makeEntry(date, "lunch", BASE_FOODS[3]!, 180), makeEntry(date, "lunch", BASE_FOODS[4]!, 250), makeEntry(date, "lunch", BASE_FOODS[5]!, 120), makeEntry(date, "lunch", BASE_FOODS[6]!, 10), makeEntry(date, "dinner", BASE_FOODS[7]!, 180), makeEntry(date, "dinner", BASE_FOODS[8]!, 300), makeEntry(date, "dinner", BASE_FOODS[9]!, 150), makeEntry(date, "snack", BASE_FOODS[10]!, 40), makeEntry(date, "snack", BASE_FOODS[11]!, 150), makeEntry(date, "snack", BASE_FOODS[15]!, 50));
     if (index === 8) meals.push(makeEntry(date, "snack", BASE_FOODS[16]!, 120, { junkFood: true }));
-    if (index === 2) alcohol.push({ id: `${date}-wine`, date, name: "Красное вино", volumeMl: 150, abv: 12.5, calories: Math.round(calculateAlcoholCalories(150, 12.5)) });
-    if (index === 9) alcohol.push({ id: `${date}-beer`, date, name: "Пиво светлое", volumeMl: 500, abv: 4.8, calories: Math.round(calculateAlcoholCalories(500, 4.8)) });
-    if (index === 11) alcohol.push({ id: `${date}-wine`, date, name: "Красное вино", volumeMl: 150, abv: 12.5, calories: Math.round(calculateAlcoholCalories(150, 12.5)) });
+    if (index === 2) alcohol.push({ id: `${date}-wine`, date, name: "Красное вино 0,2 л", volumeMl: 200, abv: 13, calories: Math.round(calculateAlcoholCalories(200, 13)) });
+    if (index === 9) alcohol.push({ id: `${date}-beer`, date, name: "Пильзнер 0,5 л", volumeMl: 500, abv: 4.9, calories: Math.round(calculateAlcoholCalories(500, 4.9)) });
+    if (index === 11) alcohol.push({ id: `${date}-wine`, date, name: "Красное вино 0,2 л", volumeMl: 200, abv: 13, calories: Math.round(calculateAlcoholCalories(200, 13)) });
     weights.push({ id: `weight-${date}`, date, weightKg: Math.round((78 + Math.sin(index / 3) * 0.15 + (index % 3) * 0.05) * 10) / 10 });
   }
+  // Гамбург: сети, которые реально есть в городе, и ориентир цен на 2025 год
+  // (за упаковку, а не за развес). Дискаунтеры сверху, био-маркеты — внизу.
   const priceEntry = (id: string, foodId: string, productName: string, store: string, packagePrice: number, packageSizeG?: number, packageSizeMl?: number): PriceEntry => ({
     id,
     productId: foodId,
     productName,
     store,
-    city: "Москва",
-    currency: "RUB",
+    city: "Гамбург",
+    currency: "EUR",
     packagePrice,
     packageSizeG,
     packageSizeMl,
     date: dateKey(today),
   });
-  const prices: PriceEntry[] = [
-    priceEntry("price-chicken-1", "chicken", "Куриная грудка", "Дикси", 449, 1000),
-    priceEntry("price-chicken-2", "chicken", "Куриная грудка", "Пятёрочка", 399, 1000),
-    priceEntry("price-chicken-3", "chicken", "Куриная грудка", "Лента", 379, 1000),
-    priceEntry("price-chicken-4", "chicken", "Куриная грудка", "Азбука вкуса", 899, 1000),
-    priceEntry("price-rice-1", "rice", "Рис отварной", "Дикси", 119, 900),
-    priceEntry("price-rice-2", "rice", "Рис отварной", "Пятёрочка", 139, 900),
-    priceEntry("price-rice-3", "rice", "Рис отварной", "Азбука вкуса", 289, 900),
-    priceEntry("price-salmon-1", "salmon", "Лосось", "Пятёрочка", 1090, 1000),
-    priceEntry("price-salmon-2", "salmon", "Лосось", "Рыбный ряд", 1290, 1000),
-    priceEntry("price-salmon-3", "salmon", "Лосось", "Азбука вкуса", 1890, 1000),
-    priceEntry("price-oats-1", "oats", "Овсянка", "Пятёрочка", 149, 800),
-    priceEntry("price-oats-2", "oats", "Овсянка", "Дикси", 129, 800),
-    priceEntry("price-oats-3", "oats", "Овсянка", "Лента", 159, 800),
-    priceEntry("price-oats-4", "oats", "Овсянка", "Азбука вкуса", 299, 800),
-    priceEntry("price-whey-1", "whey", "Сывороточный протеин", "Спортпит маркет", 2990, 900),
-    priceEntry("price-whey-2", "whey", "Сывороточный протеин", "Озон", 2590, 900),
-    priceEntry("price-whey-3", "whey", "Сывороточный протеин", "Азбука вкуса", 3490, 900),
+  const PRICE_SHEET: Array<[string, string, string, string, number, number]> = [
+    ["price-chicken-aldi", "chicken", "Куриная грудка", "Aldi Nord", 3.49, 500],
+    ["price-chicken-lidl", "chicken", "Куриная грудка", "Lidl", 3.59, 500],
+    ["price-chicken-penny", "chicken", "Куриная грудка", "Penny", 3.69, 500],
+    ["price-chicken-netto", "chicken", "Куриная грудка", "Netto", 3.79, 500],
+    ["price-chicken-kaufland", "chicken", "Куриная грудка", "Kaufland", 3.89, 500],
+    ["price-chicken-rewe", "chicken", "Куриная грудка", "Rewe", 4.29, 500],
+    ["price-chicken-edeka", "chicken", "Куриная грудка", "Edeka", 4.49, 500],
+    ["price-chicken-alnatura", "chicken", "Куриная грудка", "Alnatura", 11.99, 500],
+    ["price-oats-aldi", "oats", "Овсянка", "Aldi Nord", 0.79, 500],
+    ["price-oats-lidl", "oats", "Овсянка", "Lidl", 0.85, 500],
+    ["price-oats-penny", "oats", "Овсянка", "Penny", 0.89, 500],
+    ["price-oats-netto", "oats", "Овсянка", "Netto", 0.95, 500],
+    ["price-oats-kaufland", "oats", "Овсянка", "Kaufland", 0.99, 500],
+    ["price-oats-rewe", "oats", "Овсянка", "Rewe", 0.99, 500],
+    ["price-oats-edeka", "oats", "Овсянка", "Edeka", 1.09, 500],
+    ["price-oats-alnatura", "oats", "Овсянка", "Alnatura", 1.99, 500],
+    ["price-oats-denns", "oats", "Овсянка", "denn's Biomarkt", 2.29, 500],
+    ["price-salmon-aldi", "salmon", "Лосось", "Aldi Nord", 4.99, 250],
+    ["price-salmon-lidl", "salmon", "Лосось", "Lidl", 5.49, 250],
+    ["price-salmon-netto", "salmon", "Лосось", "Netto", 5.99, 250],
+    ["price-salmon-penny", "salmon", "Лосось", "Penny", 6.29, 250],
+    ["price-salmon-rewe", "salmon", "Лосось", "Rewe", 6.99, 250],
+    ["price-salmon-edeka", "salmon", "Лосось", "Edeka", 7.49, 250],
+    ["price-salmon-fischmarkt", "salmon", "Лосось", "Fischmarkt", 8.9, 250],
+    ["price-salmon-alnatura", "salmon", "Лосось", "Alnatura", 11.99, 250],
+    ["price-quark-aldi", "cottage", "Творог 5%", "Aldi Nord", 0.89, 500],
+    ["price-quark-lidl", "cottage", "Творог 5%", "Lidl", 0.95, 500],
+    ["price-quark-penny", "cottage", "Творог 5%", "Penny", 0.99, 500],
+    ["price-quark-netto", "cottage", "Творог 5%", "Netto", 1.09, 500],
+    ["price-quark-rewe", "cottage", "Творог 5%", "Rewe", 1.19, 500],
+    ["price-quark-edeka", "cottage", "Творог 5%", "Edeka", 1.25, 500],
+    ["price-quark-alnatura", "cottage", "Творог 5%", "Alnatura", 1.99, 500],
+    ["price-quark-denns", "cottage", "Творог 5%", "denn's Biomarkt", 2.19, 500],
+    ["price-whey-myprotein", "whey", "Сывороточный протеин", "Myprotein", 22.99, 1000],
+    ["price-whey-dm", "whey", "Сывороточный протеин", "dm", 26.95, 1000],
+    ["price-whey-budni", "whey", "Сывороточный протеин", "Budni", 29.9, 1000],
+    ["price-rice-aldi", "rice", "Рис отварной", "Aldi Nord", 1.99, 1000],
+    ["price-rice-lidl", "rice", "Рис отварной", "Lidl", 2.19, 1000],
+    ["price-rice-netto", "rice", "Рис отварной", "Netto", 2.29, 1000],
+    ["price-rice-kaufland", "rice", "Рис отварной", "Kaufland", 2.39, 1000],
+    ["price-rice-rewe", "rice", "Рис отварной", "Rewe", 2.49, 1000],
+    ["price-rice-edeka", "rice", "Рис отварной", "Edeka", 2.79, 1000],
+    ["price-rice-alnatura", "rice", "Рис отварной", "Alnatura", 3.49, 1000],
+    ["price-yogurt-aldi", "yogurt", "Греческий йогурт", "Aldi Nord", 1.49, 500],
+    ["price-yogurt-lidl", "yogurt", "Греческий йогурт", "Lidl", 1.55, 500],
+    ["price-yogurt-penny", "yogurt", "Греческий йогурт", "Penny", 1.69, 500],
+    ["price-yogurt-netto", "yogurt", "Греческий йогурт", "Netto", 1.79, 500],
+    ["price-yogurt-rewe", "yogurt", "Греческий йогурт", "Rewe", 1.99, 500],
+    ["price-yogurt-edeka", "yogurt", "Греческий йогурт", "Edeka", 2.09, 500],
+    ["price-yogurt-alnatura", "yogurt", "Греческий йогурт", "Alnatura", 2.79, 500],
   ];
+  const prices: PriceEntry[] = PRICE_SHEET.map(([id, foodId, productName, store, packagePrice, packageSizeG]) =>
+    priceEntry(id, foodId, productName, store, packagePrice, packageSizeG),
+  );
   const presets: MealPreset[] = [{ id: "preset-breakfast", name: "Быстрый белковый завтрак", meal: "breakfast", entries: [{ foodId: "oats", name: "Овсянка", amountG: 80, ...scaleNutrition(380, 13, 7, 62, 1, 80), source: "database", junkFood: false }, { foodId: "whey", name: "Сывороточный протеин", amountG: 30, ...scaleNutrition(390, 78, 5, 7, 3, 30), source: "database", junkFood: false }] }];
   return { version: 1, profile: makeProfile(), foods: BASE_FOODS, customFoods: [], meals, presets, alcohol, weights, prices, recipes: RECIPES, programs: PROGRAMS, workoutLogs: [{ id: "log-demo", date: daysAgoKey(1), programId: "program-ppl", programName: "PPL — гипертрофия", sets: Array.from({ length: 4 }, (_, index) => ({ id: `set-${index}`, exercise: "Жим лёжа", weightKg: 70, reps: 8, rpe: 8 })) }], adjustments: [] };
 };

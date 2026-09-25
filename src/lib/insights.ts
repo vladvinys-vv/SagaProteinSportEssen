@@ -230,13 +230,13 @@ export const getShoppingSavings = (entries: PriceEntry[]): { products: number; s
   };
 };
 
-/** Валюта сравнения — берём самую частую среди наблюдений. */
+/** Валюта сравнения — берём самую частую среди наблюдений; без данных считаем, что это евро. */
 export const getDominantCurrency = (entries: PriceEntry[]): Currency => {
   const counts = entries.reduce<Record<string, number>>((result, entry) => {
     result[entry.currency] = (result[entry.currency] ?? 0) + 1;
     return result;
   }, {});
-  const [currency] = Object.entries(counts).sort((a, b) => b[1] - a[1])[0] ?? ["RUB"];
+  const [currency] = Object.entries(counts).sort((a, b) => b[1] - a[1])[0] ?? ["EUR"];
   return currency as Currency;
 };
 

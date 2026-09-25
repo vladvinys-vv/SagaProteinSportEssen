@@ -33,31 +33,34 @@ describe("страница цен", () => {
     expect(screen.getByRole("heading", { name: "Где дешевле, а где изысканнее" })).toBeInTheDocument();
 
     const chicken = rowFor(container, "Куриная грудка");
-    expect(within(chicken.querySelector(".offer.is-cheapest") as HTMLElement).getByText("Лента")).toBeInTheDocument();
-    expect(within(chicken.querySelector(".offer.is-priciest") as HTMLElement).getByText("Азбука вкуса")).toBeInTheDocument();
-    expect(chicken.querySelector(".comparison-head small")).toHaveTextContent("разброс 137 %");
-    expect(chicken.querySelector(".comparison-head small")).toHaveTextContent("экономия 520");
+    expect(within(chicken.querySelector(".offer.is-cheapest") as HTMLElement).getByText("Aldi Nord")).toBeInTheDocument();
+    expect(within(chicken.querySelector(".offer.is-priciest") as HTMLElement).getByText("Alnatura")).toBeInTheDocument();
+    expect(chicken.querySelector(".comparison-head small")).toHaveTextContent("разброс 244 %");
+    expect(chicken.querySelector(".comparison-head small")).toHaveTextContent(/экономия 8,50/);
   });
 
   it("считает экономию по корзине и подсказывает лучший магазин", () => {
     const { container } = renderPage();
     const summary = container.querySelector(".summary-grid") as HTMLElement;
     expect(summary).toHaveTextContent("Продуктов в наблюдении");
-    expect(summary.textContent).toMatch(/5/);
-    expect(summary.textContent).toMatch(/2\s?560/);
-    expect(summary).toHaveTextContent("Дикси");
-    expect(summary).toHaveTextContent("+104 % к лучшей цене");
+    expect(summary.textContent).toMatch(/50 записей по 13 магазинам/);
+    expect(summary.textContent).toMatch(/28,01/);
+    expect(summary).toHaveTextContent("Aldi Nord");
+    expect(summary).toHaveTextContent("6 побед");
+    expect(summary).toHaveTextContent("denn's Biomarkt");
+    expect(summary).toHaveTextContent("+168 % к лучшей цене");
   });
 
   it("ранжирует магазины по кошельку", () => {
     const { container } = renderPage();
     const rows = [...container.querySelectorAll(".store-row")];
-    expect(rows.length).toBeGreaterThanOrEqual(5);
-    expect(rows[0]?.querySelector("strong")?.textContent).toBe("Дикси");
-    expect(rows[0]?.textContent).toContain("2 из 5 побед");
+    expect(rows.length).toBeGreaterThanOrEqual(10);
+    expect(rows[0]?.querySelector("strong")?.textContent).toBe("Aldi Nord");
+    expect(rows[0]?.textContent).toContain("6 из 7 побед");
+    expect(rows[0]?.textContent).toContain("Гамбург");
 
-    const fanciest = rows.find((row) => row.querySelector("strong")?.textContent === "Азбука вкуса");
-    expect(fanciest?.querySelector(".index-tag")).toHaveTextContent("204 %");
+    const fanciest = rows.find((row) => row.querySelector("strong")?.textContent === "denn's Biomarkt");
+    expect(fanciest?.querySelector(".index-tag")).toHaveTextContent("268 %");
     expect(fanciest?.querySelector(".index-tag")?.className).toContain("is-bad");
   });
 
@@ -67,12 +70,13 @@ describe("страница цен", () => {
 
     const form = screen.getByRole("heading", { name: "Добавить цену" }).closest("section") as HTMLElement;
     await user.type(within(form).getByLabelText("Продукт"), "Творог 5%");
-    await user.type(within(form).getByLabelText("Магазин"), "Магнит");
-    await user.type(within(form).getByLabelText("Цена за упаковку"), "180");
+    await user.type(within(form).getByLabelText("Магазин"), "Budni");
+    await user.type(within(form).getByLabelText("Цена за упаковку"), "1.49");
     await user.type(within(form).getByLabelText("Вес, г"), "300");
     await user.click(within(form).getByRole("button", { name: "Добавить цену" }));
 
-    expect(within(form).getByText(/Магнит/)).toBeInTheDocument();
+    const rows = [...container.querySelectorAll(".price-row")].map((row) => row.textContent ?? "");
+    expect(rows.some((row) => row.includes("Budni") && row.includes("Гамбург"))).toBe(true);
     expect(rowFor(container, "Творог 5%")).toBeInTheDocument();
   });
 
@@ -81,11 +85,23 @@ describe("страница цен", () => {
     const { container } = renderPage();
 
     const form = screen.getByRole("heading", { name: "Добавить цену" }).closest("section") as HTMLElement;
+    const before = container.querySelectorAll(".price-row").length;
     await user.type(within(form).getByLabelText("Продукт"), "Пустой продукт");
     await user.type(within(form).getByLabelText("Магазин"), "Нигде");
     await user.click(within(form).getByRole("button", { name: "Добавить цену" }));
 
-    expect(container.querySelectorAll(".price-row")).toHaveLength(17);
+    expect(container.querySelectorAll(".price-row")).toHaveLength(before);
+  });
+
+  it("подставляет Гамбург и подсказывает немецкие сети", () => {
+    const { container } = renderPage();
+    const form = screen.getByRole("heading", { name: "Добавить цену" }).closest("section") as HTMLElement;
+
+    expect(within(form).getByLabelText("Город")).toHaveValue("Гамбург");
+    const hints = [...form.querySelectorAll("datalist option")].map((option) => option.getAttribute("value"));
+    expect(hints).toContain("Aldi Nord");
+    expect(hints).toContain("denn's Biomarkt");
+    expect(container.querySelector(".price-list")).toHaveTextContent("Гамбург");
   });
 
   it("удаляет наблюдение", async () => {
@@ -93,9 +109,9 @@ describe("страница цен", () => {
     const { container } = renderPage();
     const before = container.querySelectorAll(".price-row").length;
 
-    await user.click(screen.getByRole("button", { name: "Удалить цену Лосось в Рыбный ряд" }));
+    await user.click(screen.getByRole("button", { name: "Удалить цену Лосось в Fischmarkt" }));
 
     expect(container.querySelectorAll(".price-row")).toHaveLength(before - 1);
-    expect(rowFor(container, "Лосось").querySelector(".comparison-offers")?.textContent).not.toContain("Рыбный ряд");
+    expect(rowFor(container, "Лосось").querySelector(".comparison-offers")?.textContent).not.toContain("Fischmarkt");
   });
 });

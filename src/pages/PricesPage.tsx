@@ -7,8 +7,28 @@ import { getDominantCurrency, getPriceComparisons, getShoppingSavings, getStoreR
 import { useAppState } from "@/state/AppContext";
 import type { Currency, Food, PriceCategory, PriceEntry } from "@/types";
 
+/** Евро показываем в немецком формате (1.234,56 €), остальные валюты — по-русски. */
 const money = (value: number, currency: Currency) =>
-  new Intl.NumberFormat("ru-RU", { style: "currency", currency, maximumFractionDigits: 2 }).format(value);
+  new Intl.NumberFormat(currency === "EUR" ? "de-DE" : "ru-RU", { style: "currency", currency, maximumFractionDigits: 2 }).format(value);
+
+/** Сети Гамбурга — подсказки, чтобы наблюдение вводилось в один тап. */
+export const STORE_HINTS = [
+  "Aldi Nord",
+  "Lidl",
+  "Penny",
+  "Netto",
+  "Kaufland",
+  "Rewe",
+  "Edeka",
+  "Alnatura",
+  "denn's Biomarkt",
+  "Fischmarkt",
+  "dm",
+  "Budni",
+  "Myprotein",
+];
+
+const HOME_CITY = "Гамбург";
 
 const categoryLabel: Record<PriceCategory, string> = { budget: "выгодно", medium: "средняя цена", premium: "изысканно" };
 
@@ -28,7 +48,7 @@ export default function PricesPage() {
     id: "",
     productName: "",
     store: "",
-    city: "Москва",
+    city: HOME_CITY,
     currency: state.profile.currency,
     packagePrice: 0,
     date: dateKey(),
@@ -80,7 +100,10 @@ export default function PricesPage() {
         <div>
           <span className="eyebrow">Закупка</span>
           <h1>Где дешевле, а где изысканнее</h1>
-          <p>Сравнивай цены за 100 г между магазинами: видно, где брать базовую корзину, а где позволить себе премиум.</p>
+          <p>
+            Гамбург: сравнивай цены за 100 г между сетями — видно, где брать базовую корзину
+            (Aldi Nord, Lidl, Penny, Netto), а где позволить себе премиум (Alnatura, denn's Biomarkt, Fischmarkt).
+          </p>
         </div>
         <div className="title-stat">
           <Store size={17} />
@@ -191,11 +214,19 @@ export default function PricesPage() {
             </label>
             <label>
               <span>Магазин</span>
-              <input value={draft.store} onChange={(event) => setDraft({ ...draft, store: event.target.value })} placeholder="Пятёрочка" />
+              <input
+                list="store-hints"
+                value={draft.store}
+                onChange={(event) => setDraft({ ...draft, store: event.target.value })}
+                placeholder="Aldi Nord, Rewe, Edeka…"
+              />
+              <datalist id="store-hints">
+                {STORE_HINTS.map((store) => <option key={store} value={store} />)}
+              </datalist>
             </label>
             <label>
               <span>Город</span>
-              <input value={draft.city} onChange={(event) => setDraft({ ...draft, city: event.target.value })} />
+              <input value={draft.city} onChange={(event) => setDraft({ ...draft, city: event.target.value })} placeholder="Гамбург" />
             </label>
             <label>
               <span>Цена за упаковку</span>
@@ -222,9 +253,9 @@ export default function PricesPage() {
             <label>
               <span>Валюта</span>
               <select value={draft.currency} onChange={(event) => setDraft({ ...draft, currency: event.target.value as Currency })}>
-                <option value="RUB">Рубли</option>
-                <option value="USD">Доллары</option>
-                <option value="EUR">Евро</option>
+                <option value="EUR">Евро (€)</option>
+                <option value="RUB">Рубли (₽)</option>
+                <option value="USD">Доллары ($)</option>
               </select>
             </label>
             <button className="button secondary" type="button" onClick={addObservation}>
@@ -266,7 +297,8 @@ export default function PricesPage() {
         <div className="capability-note">
           <Tag size={16} />
           <span>
-            Цены вводятся вручную: приложение не ходит в интернет за прайсами, поэтому сравнение остаётся полностью локальным и не устаревает на чужих данных.
+            Цены вводятся вручную (ориентир — немецкий рынок, упаковка в евро): приложение не ходит в интернет
+            за прайсами, поэтому сравнение остаётся полностью локальным и не устаревает на чужих данных.
           </span>
         </div>
       </Card>
