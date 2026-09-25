@@ -5,6 +5,8 @@ const BASE_URL = process.env.E2E_BASE_URL ?? `http://localhost:${PORT}`;
 
 export default defineConfig({
   testDir: "e2e",
+  // Проверки доступности живут в отдельном конфиге: npm run test:a11y
+  testIgnore: "a11y/**",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
