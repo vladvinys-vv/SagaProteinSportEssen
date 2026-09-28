@@ -1,6 +1,8 @@
-import "@testing-library/jest-dom";
-import { vi } from "vitest";
+import "@testing-library/jest-dom/vitest";
+import { cleanup } from "@testing-library/react";
+import { afterEach, vi } from "vitest";
 
+// happy-dom не реализует matchMedia, а адаптивные компоненты его вызывают.
 Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: vi.fn().mockImplementation((query: string) => ({
@@ -13,4 +15,9 @@ Object.defineProperty(window, "matchMedia", {
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn(),
   })),
+});
+
+afterEach(() => {
+  cleanup();
+  window.localStorage.clear();
 });

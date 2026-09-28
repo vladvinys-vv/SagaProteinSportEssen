@@ -1,21 +1,21 @@
 import { describe, expect, it } from "vitest";
 import { createEmptyState } from "@/data/demo";
 import {
-  GOAL_CALORIE_ADJUSTMENTS,
   calculateDailyTotals,
   calculateMacroTargets,
+  calculateRecoveryPlan,
   dateKey,
   daysAgoKey,
-  getAutoCorrection,
-  calculateRecoveryPlan,
+  GOAL_CALORIE_ADJUSTMENTS,
   getAlcoholImpact,
+  getAutoCorrection,
   getFoodRecommendations,
   getPeriodNutritionSummary,
+  getPriceCategory,
+  getProductPriceCategory,
   getProteinAdherence,
   getRecipeRecommendations,
   getStreakReward,
-  getPriceCategory,
-  getProductPriceCategory,
 } from "@/lib/calculations";
 import type { AlcoholEntry, MealEntry, PriceEntry } from "@/types";
 

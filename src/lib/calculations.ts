@@ -2,23 +2,25 @@ import type {
   ActivityBreakdown,
   ActivityState,
   AlcoholEntry,
+  AlcoholImpact,
   AppState,
+  AutoCorrection,
   DailyTotals,
+  Food,
+  FoodRecommendation,
   Goal,
   MacroTargets,
   MealEntry,
-  PeriodNutritionSummary,
-  PriceEntry,
-  PriceCategory,
-  Profile,
-  Recipe,
-  RecoveryPlan,
-  Food,
-  FoodRecommendation,
   NutritionFocus,
+  PeriodNutritionSummary,
+  PlateauResult,
+  PriceCategory,
+  PriceEntry,
+  Profile,
   ProteinAdherence,
+  Recipe,
   RecipeRecommendation,
-  AlcoholImpact,
+  RecoveryPlan,
   StreakReward,
   WorkoutLog,
   WorkoutProgram,
@@ -63,11 +65,11 @@ export const calculateRecoveryPlan = (excessCalories: number, weightKg: number, 
   return {
     cardio: [
       { label: "Ходьба", met: 3.5, minutes: calculateCardioMinutes(excessCalories, weightKg, 3.5) },
-      { label: "Велосипед", met: 7, minutes: calculateCardioMinutes(excessCalories, weightKg, 7) },
-      { label: "Бег", met: 10, minutes: calculateCardioMinutes(excessCalories, weightKg, 10) },
-    ],
-    strict: { mode: "strict", days: strictDays, dailyDeficit: 500, targetCalories: Math.max(1200, targetCalories - 500), meal: "Фруктовый салат с греческим йогуртом", mealCalories: 280, mealProtein: 20 },
-    soft: { mode: "soft", days: softDays, dailyDeficit: 250, targetCalories: Math.max(1200, targetCalories - 250), meal: "Фруктовый салат с творогом", mealCalories: 340, mealProtein: 24 },
+    { label: "Велосипед", met: 7, minutes: calculateCardioMinutes(excessCalories, weightKg, 7) },
+    { label: "Бег", met: 10, minutes: calculateCardioMinutes(excessCalories, weightKg, 10) },
+  ],
+  strict: { mode: "strict", days: strictDays, dailyDeficit: 500, targetCalories: Math.max(1200, targetCalories - 500), meal: "Фруктовый салат с греческим йогуртом", mealCalories: 280, mealProtein: 20 },
+  soft: { mode: "soft", days: softDays, dailyDeficit: 250, targetCalories: Math.max(1200, targetCalories - 250), meal: "Фруктовый салат с творогом", mealCalories: 340, mealProtein: 24 },
   };
 };
 export const getFoodRecommendations = (foods: Food[], prices: PriceEntry[], targets: MacroTargets, category: PriceCategory, focus: NutritionFocus, limit = 6): FoodRecommendation[] => {
@@ -109,10 +111,10 @@ export const getAlcoholImpact = (alcoholCalories: number, targetCalories: number
       : `Алкоголь занимает ${Math.round(percentOfTarget * 100)}% цели и сокращает запас для ${goalLabel}.`;
   return {
     percentOfTarget,
-    remainingCalories: targetCalories - alcoholCalories,
-    remainingProtein: targetProtein - consumedProtein,
-    progressEffect,
-    progressMessage,
+  remainingCalories: targetCalories - alcoholCalories,
+  remainingProtein: targetProtein - consumedProtein,
+  progressEffect,
+  progressMessage,
   };
 };
 export const getProteinAdherence = (meals: MealEntry[], targetProtein: number, startDaysAgo: number, endDaysAgo = 0): ProteinAdherence => {
@@ -130,11 +132,11 @@ export const getPeriodNutritionSummary = (meals: MealEntry[], alcohol: AlcoholEn
   const protein = getProteinAdherence(meals, targets.protein, startDaysAgo, endDaysAgo);
   return {
     loggedDays: logged.length,
-    averageCalories: logged.length ? logged.reduce((total, totals) => total + totals.calories, 0) / logged.length : null,
-    averageProtein: logged.length ? logged.reduce((total, totals) => total + totals.protein, 0) / logged.length : null,
-    averageWeight: weightSamples.length ? weightSamples.reduce((total, entry) => total + entry.weightKg, 0) / weightSamples.length : null,
-    proteinCompliantDays: protein.compliantDays,
-    proteinAdherence: protein.rate,
+  averageCalories: logged.length ? logged.reduce((total, totals) => total + totals.calories, 0) / logged.length : null,
+  averageProtein: logged.length ? logged.reduce((total, totals) => total + totals.protein, 0) / logged.length : null,
+  averageWeight: weightSamples.length ? weightSamples.reduce((total, entry) => total + entry.weightKg, 0) / weightSamples.length : null,
+  proteinCompliantDays: protein.compliantDays,
+  proteinAdherence: protein.rate,
   };
 };
 export const getStreakReward = (streak: number, targets: MacroTargets, totals: DailyTotals): StreakReward | null => {
@@ -142,8 +144,8 @@ export const getStreakReward = (streak: number, targets: MacroTargets, totals: D
   if (!milestone) return null;
   const options: Record<StreakReward["milestone"], Omit<StreakReward, "milestone" | "portionFactor" | "calories" | "protein" | "fitsPlan" | "note">> = {
     3: { name: "Ягоды с греческим йогуртом", baseCalories: 220, baseProtein: 20 },
-    7: { name: "Творог с ягодами и орехами", baseCalories: 300, baseProtein: 25 },
-    14: { name: "Боул с курицей и рисом", baseCalories: 450, baseProtein: 40 },
+  7: { name: "Творог с ягодами и орехами", baseCalories: 300, baseProtein: 25 },
+  14: { name: "Боул с курицей и рисом", baseCalories: 450, baseProtein: 40 },
   };
   const option = options[milestone];
   const remainingCalories = targets.calories - totals.calories;
@@ -165,7 +167,7 @@ export const getCalorieAdherence = (meals: MealEntry[], alcohol: AlcoholEntry[],
   const compliant = days.filter((date) => { const calories = calculateDailyTotals(meals, alcohol, date).calories; return calories > 0 && Math.abs(calories - targetCalories) <= targetCalories * 0.1; }).length;
   return compliant / days.length;
 };
-export const detectPlateau = (state: AppState, today = dateKey()): { active: boolean; weeklyChange: number; adherence: number } | null => {
+export const detectPlateau = (state: AppState, today = dateKey()): PlateauResult | null => {
   const current = getSevenDayAverage(state.weights, today);
   const previousEnd = new Date(`${today}T12:00:00`); previousEnd.setDate(previousEnd.getDate() - 7);
   const previous = getSevenDayAverage(state.weights, previousEnd.toISOString().slice(0, 10));
@@ -174,7 +176,7 @@ export const detectPlateau = (state: AppState, today = dateKey()): { active: boo
   const adherence = getCalorieAdherence(state.meals, state.alcohol, calculateTargetCalories(state.profile), 13);
   return Math.abs(weeklyChange) > 0.2 || adherence < 0.8 ? null : { active: true, weeklyChange, adherence };
 };
-export const getAutoCorrection = (state: AppState, today = dateKey(), windowDays = 7): { active: boolean; suggestedAdjustment: number; observedWeeklyChange: number; expectedWeeklyChange: number; averageCalories: number } | null => {
+export const getAutoCorrection = (state: AppState, today = dateKey(), windowDays = 7): AutoCorrection | null => {
   const safeWindowDays = Math.min(14, Math.max(7, windowDays));
   const start = new Date(`${today}T12:00:00`); start.setDate(start.getDate() - (safeWindowDays - 1));
   const startDate = start.toISOString().slice(0, 10);
@@ -194,7 +196,12 @@ export const getAutoCorrection = (state: AppState, today = dateKey(), windowDays
   return { active: suggestedAdjustment !== 0, suggestedAdjustment, observedWeeklyChange, expectedWeeklyChange, averageCalories };
 };
 export const getNoJunkStreak = (meals: MealEntry[], today = dateKey()): number => {
-  const byDate = meals.reduce<Record<string, MealEntry[]>>((groups, entry) => { (groups[entry.date] ??= []).push(entry); return groups; }, {});
+  const byDate = meals.reduce<Record<string, MealEntry[]>>((groups, entry) => {
+    const entries = groups[entry.date] ?? [];
+    entries.push(entry);
+    groups[entry.date] = entries;
+    return groups;
+  }, {});
   const current = new Date(`${today}T12:00:00`);
   let streak = 0;
   for (let offset = 0; offset < 365; offset += 1) {
@@ -232,17 +239,11 @@ export const getProductPriceCategory = (entries: PriceEntry[], productId?: strin
   const position = productPrices.findIndex(({ id }) => id === productId) / (productPrices.length - 1);
   return position <= 0.33 ? "budget" : position >= 0.67 ? "premium" : "medium";
 };
-export const getPriceCategoriesByProduct = (entries: PriceEntry[], productId?: string): "budget" | "medium" | "premium" | null => {
-  if (!productId) return null;
-  const matches = entries.filter((entry) => entry.productId === productId).map((entry) => ({ entry, price: getNormalizedPrice(entry) })).sort((a, b) => a.price - b.price);
-  if (!matches.length) return null;
-  if (matches.length === 1) return "medium";
-  const midpoint = (matches[0]!.price + matches.at(-1)!.price) / 2;
-  return matches.some(({ price }) => price < midpoint) ? "budget" : "premium";
-};
 export const getNextWorkoutRecommendation = (program: WorkoutProgram, log?: WorkoutLog): Record<string, number> => {
   const completed = new Map<string, WorkoutSet[]>();
-  log?.sets.forEach((set) => completed.set(set.exercise, [...(completed.get(set.exercise) ?? []), set]));
+  log?.sets.forEach((set) => {
+    completed.set(set.exercise, [...(completed.get(set.exercise) ?? []), set]);
+  });
   return program.days.flatMap((day) => day.exercises).reduce<Record<string, number>>((result, exercise) => {
     const sets = completed.get(exercise.name) ?? [];
     const currentWeight = sets.at(-1)?.weightKg ?? 0;
