@@ -9,7 +9,7 @@ export default defineConfig({
   reporter: "html",
   use: {
     baseURL: "http://localhost:3100",
-    locale: "de-DE",
+    locale: "ru-RU",
     trace: "on-first-retry",
   },
   projects: [
