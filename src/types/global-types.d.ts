@@ -1,13 +1,15 @@
 declare module "lucide-react" {
   import type { ComponentProps, ComponentType } from "react";
-  export const DollarSign: ComponentType<ComponentProps<"svg">>;
-  export const Plus: ComponentType<ComponentProps<"svg">>;
-  export const ShoppingBasket: ComponentType<ComponentProps<"svg">>;
-  export const Store: ComponentType<ComponentProps<"svg">>;
-  export const Tag: ComponentType<ComponentProps<"svg">>;
-  export const Trash2: ComponentType<ComponentProps<"svg">>;
-  export const TrendingDown: ComponentType<ComponentProps<"svg">>;
-  export const Download: ComponentType<ComponentProps<"svg">>;
+
+  type IconProps = ComponentProps<"svg"> & { size?: number };
+  export const DollarSign: ComponentType<IconProps>;
+  export const Plus: ComponentType<IconProps>;
+  export const ShoppingBasket: ComponentType<IconProps>;
+  export const Store: ComponentType<IconProps>;
+  export const Tag: ComponentType<IconProps>;
+  export const Trash2: ComponentType<IconProps>;
+  export const TrendingDown: ComponentType<IconProps>;
+  export const Download: ComponentType<IconProps>;
 }
 
 declare module "react-router" {

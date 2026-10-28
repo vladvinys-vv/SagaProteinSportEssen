@@ -4,6 +4,7 @@ import { Card, EmptyState, SectionHeader } from "@/components/UI";
 import { useFocusSection } from "@/hooks/useFocusSection";
 import { dateKey, getNormalizedPrice } from "@/lib/calculations";
 import { getDominantCurrency, getPriceComparisons, getShoppingSavings, getStoreRankings } from "@/lib/insights";
+import { dealToPriceEntry, fetchMarktguruDeals, type normalizeMarktguruOffer } from "@/lib/marktguru";
 import { plural } from "@/lib/plural";
 import {
   compareStorePrices,
@@ -62,6 +63,12 @@ export default function PricesPage() {
   });
   const [sort, setSort] = useState<"cheap" | "premium" | "newest">("cheap");
   const [viewMode, setViewMode] = useState<"list" | "comparison" | "analytics">("list");
+  const [importQuery, setImportQuery] = useState("");
+  const [importZipCode, setImportZipCode] = useState("10115");
+  const [importStores, setImportStores] = useState<string[]>([]);
+  const [importing, setImporting] = useState(false);
+  const [importedDeals, setImportedDeals] = useState<ReturnType<typeof normalizeMarktguruOffer>[]>([]);
+  const [importError, setImportError] = useState("");
 
   const comparisons = useMemo(() => getPriceComparisons(state.prices), [state.prices]);
   const rankings = useMemo(() => getStoreRankings(state.prices), [state.prices]);
@@ -106,6 +113,39 @@ export default function PricesPage() {
   const handleExportCSV = () => {
     const csv = exportPricesToCSV(normalizedPrices);
     downloadCSV(csv, `prices-${dateKey()}.csv`);
+  };
+
+  const handleImportMarktguru = async () => {
+    if (!importQuery.trim()) return;
+    setImporting(true);
+    setImportError("");
+    try {
+      const deals = await fetchMarktguruDeals(importQuery, {
+        zipCode: importZipCode,
+        stores: importStores,
+      });
+      setImportedDeals(deals);
+    } catch (error) {
+      setImportError(error instanceof Error ? error.message : "Ошибка загрузки с Marktguru");
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const handleImportDeal = (deal: ReturnType<typeof normalizeMarktguruOffer>) => {
+    const entry = dealToPriceEntry(deal, "Гамбург");
+    const packageSize = entry.packageSizeG ?? entry.packageSizeMl;
+    if (!entry.productName.trim() || !entry.store.trim() || entry.packagePrice <= 0 || !packageSize || packageSize <= 0) return;
+    updateState({
+      prices: [
+        {
+          ...entry,
+          id: `price-${Date.now()}`,
+        },
+        ...state.prices,
+      ],
+    });
+    setImportedDeals((prev) => prev.filter((d) => d.id !== deal.id));
   };
 
   const bestStore = rankings[0];
@@ -400,6 +440,71 @@ export default function PricesPage() {
             за прайсами, поэтому сравнение остаётся полностью локальным и не устаревает на чужих данных.
           </span>
         </div>
+      </Card>
+
+      <Card>
+        <SectionHeader eyebrow="Импорт" title="Цены с Marktguru.de" />
+        <p className="small-note">
+          Опциональный импорт актуальных цен из немецких супермаркетов через Marktguru API. Требует доступа в
+          интернет, остальные данные остаются локальными.
+        </p>
+        <div className="price-form-grid">
+          <label>
+            <span>Поиск продукта</span>
+            <input
+              value={importQuery}
+              onChange={(event) => setImportQuery(event.target.value)}
+              placeholder="Например, Молоко, Курица, Яблоки…"
+            />
+          </label>
+          <label>
+            <span>Почтовый индекс (PLZ)</span>
+            <input
+              type="text"
+              maxLength={5}
+              value={importZipCode}
+              onChange={(event) => setImportZipCode(event.target.value.replace(/\D/g, "").slice(0, 5))}
+              placeholder="10115"
+            />
+          </label>
+          <label>
+            <span>Магазины (через запятую)</span>
+            <input
+              value={importStores.join(", ")}
+              onChange={(event) => setImportStores(event.target.value.split(",").map((s) => s.trim()).filter(Boolean))}
+              placeholder="Aldi Nord, Lidl, Rewe, Edeka…"
+            />
+          </label>
+          <button className="button" type="button" onClick={handleImportMarktguru} disabled={importing}>
+            {importing ? "Загрузка…" : "Искать на Marktguru"}
+          </button>
+        </div>
+
+        {importError && <div className="import-error">{importError}</div>}
+
+        {importedDeals.length > 0 && (
+          <div>
+            <small>Найдено предложений: {importedDeals.length}</small>
+            <div className="import-deal-list">
+              {importedDeals.map((deal) => (
+                <div className="import-deal-row" key={deal.id}>
+                  <div>
+                    <strong>{deal.title}</strong>
+                    <br />
+                    <small>{deal.store} · {money(deal.price, "EUR")} · {deal.size}</small>
+                  </div>
+                  <button
+                    className="button secondary"
+                    type="button"
+                    onClick={() => handleImportDeal(deal)}
+                  >
+                    Добавить цену
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </Card>
     </div>
   );
