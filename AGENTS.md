@@ -28,7 +28,14 @@ npm run verify        # Comprehensive check (typecheck + lint + test + build)
 
 ---
 
-## 4. Key Constraints
+## 4. Google Jules Agent Integration
+- **Configuration:** `.jules/config.json` specifies `gemini-2.5-pro` model, setup, and verification test commands.
+- **Rules & Guardrails:** `.jules/rules.md` enforces local-first storage, MET expenditure scientific formulas, alcohol stagnation tracking, and WCAG AA accessibility standards.
+- **CI/CD Automation:** `.github/workflows/jules.yml` triggers automated checks on labeled issues or pull requests.
+
+---
+
+## 5. Key Constraints
 1. **Privacy & Offline First:** No analytics scripts or third-party tracking; all calculations must happen clientside.
 2. **Accessibility Standards:** Must pass WCAG contrast and accessibility audits (`npm run test:a11y`).
 3. **Branch Discipline:** Default target branch is `main`.

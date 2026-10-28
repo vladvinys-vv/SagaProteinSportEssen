@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "engine": "gemini-2.5-pro",
+  "environment": {
+    "setup": "npm install",
+    "test": "npm test",
+    "typecheck": "npm run typecheck",
+    "lint": "npm run lint",
+    "build": "npm run build"
+  },
+  "branch_prefix": "jules/"
+}

@@ -1,0 +1,39 @@
+name: Google Jules Automation
+
+on:
+  issues:
+    types: [labeled]
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  jules-verify:
+    if: github.event_name != 'issues' || contains(github.event.issue.labels.*.name, 'jules')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci || npm install
+
+      - name: TypeScript Typecheck
+        run: npm run typecheck
+
+      - name: Lint Verification
+        run: npm run lint
+
+      - name: Unit Tests
+        run: npm test
