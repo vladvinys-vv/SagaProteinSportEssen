@@ -1,10 +1,16 @@
-import { DollarSign, Plus, ShoppingBasket, Store, Tag, Trash2, TrendingDown } from "lucide-react";
+import { DollarSign, Download, Plus, ShoppingBasket, Store, Tag, Trash2, TrendingDown } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Card, EmptyState, SectionHeader } from "@/components/UI";
 import { useFocusSection } from "@/hooks/useFocusSection";
 import { dateKey, getNormalizedPrice } from "@/lib/calculations";
 import { getDominantCurrency, getPriceComparisons, getShoppingSavings, getStoreRankings } from "@/lib/insights";
 import { plural } from "@/lib/plural";
+import {
+  compareStorePrices,
+  downloadCSV,
+  exportPricesToCSV,
+  normalizePriceEntries,
+} from "@/lib/priceNormalization";
 import { useAppState } from "@/state/AppContext";
 import type { Currency, Food, PriceCategory, PriceEntry } from "@/types";
 
@@ -55,11 +61,16 @@ export default function PricesPage() {
     date: dateKey(),
   });
   const [sort, setSort] = useState<"cheap" | "premium" | "newest">("cheap");
+  const [viewMode, setViewMode] = useState<"list" | "comparison" | "analytics">("list");
 
   const comparisons = useMemo(() => getPriceComparisons(state.prices), [state.prices]);
   const rankings = useMemo(() => getStoreRankings(state.prices), [state.prices]);
   const savings = getShoppingSavings(state.prices);
   const currency = getDominantCurrency(state.prices);
+
+  // Enhanced: Normalize prices with unit calculations
+  const normalizedPrices = useMemo(() => normalizePriceEntries(state.prices), [state.prices]);
+  const storeComparisons = useMemo(() => compareStorePrices(normalizedPrices), [normalizedPrices]);
 
   const sortedObservations = useMemo(
     () =>
@@ -90,6 +101,11 @@ export default function PricesPage() {
       ],
     });
     setDraft({ id: "", productName: "", store: "", city: draft.city, currency: draft.currency, packagePrice: 0, date: dateKey() });
+  };
+
+  const handleExportCSV = () => {
+    const csv = exportPricesToCSV(normalizedPrices);
+    downloadCSV(csv, `prices-${dateKey()}.csv`);
   };
 
   const bestStore = rankings[0];
@@ -141,8 +157,18 @@ export default function PricesPage() {
         </Card>
       </div>
 
-      <Card>
-        <SectionHeader eyebrow="Сравнение" title="Цены по магазинам" action={<span className="day-result">за 100 г / 100 мл</span>} />
+      <div className="view-mode">
+        <button className={viewMode === "list" ? "is-active" : ""} type="button" onClick={() => setViewMode("list")}>Список</button>
+        <button className={viewMode === "comparison" ? "is-active" : ""} type="button" onClick={() => setViewMode("comparison")}>Сравнение магазинов</button>
+        <button className={viewMode === "analytics" ? "is-active" : ""} type="button" onClick={() => setViewMode("analytics")}>Аналитика</button>
+        <button className="export-button" type="button" onClick={handleExportCSV}>
+          <Download size={16} /> CSV
+        </button>
+      </div>
+
+      {viewMode === "list" && (
+        <Card>
+          <SectionHeader eyebrow="Сравнение" title="Цены по магазинам" action={<span className="day-result">за 100 г / 100 мл</span>} />
         {comparisons.length === 0 && <EmptyState title="Пока нет наблюдений" text="Добавь первую цену — и здесь появится сравнение магазинов." />}
         <div className="comparison-list">
           {comparisons.map((comparison) => (
@@ -183,6 +209,78 @@ export default function PricesPage() {
           ))}
         </div>
       </Card>
+      )}
+
+      {viewMode === "comparison" && (
+        <Card>
+          <SectionHeader eyebrow="Сравнение" title="Лучшие цены по продуктам" />
+          {storeComparisons.length === 0 && <EmptyState title="Нет данных для сравнения" text="Добавьте цены одного продукта из разных магазинов." />}
+          <table className="comparison-table">
+            <thead>
+              <tr>
+                <th>Продукт</th>
+                <th>Дешевле всего</th>
+                <th>Цена / единицу</th>
+                <th>Разброс</th>
+                <th>Экономия</th>
+                <th>Магазины</th>
+              </tr>
+            </thead>
+            <tbody>
+              {storeComparisons.map((comparison) => (
+                <tr key={comparison.productName}>
+                  <td>
+                    <strong>{comparison.productName}</strong>
+                  </td>
+                  <td>{comparison.cheapest.store}</td>
+                  <td>
+                    {money(comparison.cheapest.priceScore, comparison.cheapest.currency)}
+                  </td>
+                  <td>
+                    {comparison.spreadPercent.toFixed(0)} %
+                  </td>
+                  <td>{money(comparison.savings, comparison.cheapest.currency)}</td>
+                  <td>{comparison.offers.length}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+      )}
+
+      {viewMode === "analytics" && (
+        <Card>
+          <SectionHeader eyebrow="Аналитика" title="Статистика по магазинам" />
+          <div className="analytics-grid">
+            {storeComparisons.length === 0 && (
+              <EmptyState title="Нет аналитики" text="Нужны цены из как минимум двух магазинов." />
+            )}
+            {rankings.map((ranking, index) => (
+              <div className="analytics-row" key={ranking.store}>
+                <span className="store-rank">{index + 1}</span>
+                <div>
+                  <strong>{ranking.store}</strong>
+                  <small>{ranking.city}</small>
+                </div>
+                <div className="score-bar">
+                  <div className="score-fill" style={{ width: `${Math.max(0, 150 - ranking.averageIndex)}%` }} />
+                </div>
+                <span>{ranking.averageIndex} %</span>
+              </div>
+            ))}
+            <div className="analytics-row">
+              <div>
+                <strong>Лучший магазин</strong>
+                <small>{bestStore?.store ?? "—"}</small>
+              </div>
+              <div className="score-bar">
+                <div className="score-fill" style={{ width: `${Math.max(0, 150 - (bestStore?.averageIndex ?? 100))}%` }} />
+              </div>
+              <span>{bestStore?.averageIndex ?? "—"} %</span>
+            </div>
+          </div>
+        </Card>
+      )}
 
       <div className="two-column">
         <Card>
