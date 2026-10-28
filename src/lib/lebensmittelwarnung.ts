@@ -42,9 +42,9 @@ export function filterWarnings(
     results = results.filter(
       (w) =>
         w.title.toLowerCase().includes(q) ||
-        (w.warning && w.warning.toLowerCase().includes(q)) ||
-        (w.reason && w.reason.toLowerCase().includes(q)) ||
-        (w.manufacturer && w.manufacturer.toLowerCase().includes(q))
+        (w.warning?.toLowerCase().includes(q)) ||
+        (w.reason?.toLowerCase().includes(q)) ||
+        (w.manufacturer?.toLowerCase().includes(q))
     );
   }
 
@@ -66,7 +66,7 @@ export function checkProductSafety(
     const titleMatch = normProduct.length > 2 && w.title.toLowerCase().includes(normProduct);
     const brandMatch =
       normBrand.length > 2 &&
-      ((w.manufacturer && w.manufacturer.toLowerCase().includes(normBrand)) ||
+      ((w.manufacturer?.toLowerCase().includes(normBrand)) ||
         w.title.toLowerCase().includes(normBrand));
     return titleMatch || brandMatch;
   });

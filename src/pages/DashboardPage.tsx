@@ -1,5 +1,5 @@
 import { Activity, ArrowRight, Candy, ClipboardCheck, Flame, Footprints, HeartPulse, Tag, Utensils } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { Card, ProgressBar, TrendChart } from "@/components/UI";
 import { calculateCardioMinutes, calculateDailyTotals, calculateMacroTargets, dateKey, getActivityBreakdown, getNoJunkStreak, getStreakReward } from "@/lib/calculations";
 import { getAlcoholStagnation, getNextTreatTier, getPriceComparisons, getTreatTier } from "@/lib/insights";
@@ -11,6 +11,7 @@ const activityLabels: Record<ActivityState, string> = { lying: "Сон и отд
 
 export default function DashboardPage() {
   const { state, updateState } = useAppState();
+  const navigate = useNavigate();
   const today = dateKey();
   const totals = calculateDailyTotals(state.meals, state.alcohol, today);
   const targets = calculateMacroTargets(state.profile);
@@ -47,7 +48,7 @@ export default function DashboardPage() {
     </div>
     {excess > 0 && <Card className="overage-card"><div className="overage-head"><Flame size={20} /><div><strong>+{Math.round(excess)} ккал</strong><p>Выбери, как вернуть день к цели.</p></div></div><div className="overage-grid"><div><h3>Кардио-компенсация</h3><div className="cardio-options">{cardio.map((option) => <div key={option.label}><span>{option.label} · {option.met} MET</span><strong>{option.minutes} мин</strong></div>)}</div></div><div><h3>Следующий приём пищи</h3><div className="diet-options"><Link className="diet-option" to="/nutrition"><span>Лёгкий −250 ккал</span><strong>белок и овощи</strong></Link><Link className="diet-option" to="/nutrition"><span>Белок + овощи −500 ккал</span><strong>без жёстких ограничений</strong></Link></div></div></div></Card>}
     <Card><div className="section-heading"><div><span className="eyebrow">Динамика</span><h2>Последние замеры</h2></div><Link className="text-button" to="/analytics">Все данные <ArrowRight size={14} /></Link></div>{weightTrend.length > 1 ? <TrendChart data={weightTrend} unit="кг" color="#8ab4ff" /> : <div className="empty-state"><strong>Пока нет истории веса</strong><p>Добавь первый замер в профиле.</p></div>}</Card>
-    {alcoholStagnation.status !== "none" && <Card className="overage-card"><div className="overage-head"><Flame size={20} /><div><strong>Алкоголь тормозит прогресс</strong><p>{alcoholStagnation.message}</p></div></div><div className="plateau-actions"><Link className="diet-option" to="/nutrition" state={{ focus: "alcohol" }}><span>Внести напиток</span><strong>и увидеть цену прогрессу</strong></Link></div></Card>}
+    {alcoholStagnation.status !== "none" && <Card className="overage-card"><div className="overage-head"><Flame size={20} /><div><strong>Алкоголь тормозит прогресс</strong><p>{alcoholStagnation.message}</p></div></div><div className="plateau-actions"><button className="diet-option" type="button" onClick={() => navigate("/nutrition", { state: { focus: "alcohol" } })}><span>Внести напиток</span><strong>и увидеть цену прогрессу</strong></button></div></Card>}
     <div className="capability-grid"><Link className="capability-card" to="/nutrition"><Utensils size={20} /><div><strong>Запланировать приём пищи</strong><p>Быстрые рецепты, продукты и готовые пресеты.</p></div><ArrowRight className="muted-icon" size={16} /></Link><Link className="capability-card" to="/workouts"><Activity size={20} /><div><strong>Открыть тренировку</strong><p>Программа, рабочие веса и история подходов.</p></div><ArrowRight className="muted-icon" size={16} /></Link><Link className="capability-card" to="/prices"><Tag size={20} /><div><strong>Сравнить цены</strong><p>{priceWatch.length > 0 ? `${priceWatch.length} продуктов: где дешевле, а где изысканнее.` : "Добавь цены и узнай, где выгоднее закупаться."}</p></div><ArrowRight className="muted-icon" size={16} /></Link></div>
   </div>;
 }
