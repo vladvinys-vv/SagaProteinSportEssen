@@ -8,6 +8,7 @@ export default defineConfig({
     alias: {
       "@": resolve(__dirname, "./src"),
       "lucide-react": resolve(__dirname, "./node_modules/lucide-react/dist/cjs/lucide-react.js"),
+      "react-router": resolve(__dirname, "./node_modules/react-router/dist/development/index.js"),
     },
   },
   server: {
