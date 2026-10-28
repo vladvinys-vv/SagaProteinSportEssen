@@ -39,3 +39,56 @@ npm run verify        # Comprehensive check (typecheck + lint + test + build)
 1. **Privacy & Offline First:** No analytics scripts or third-party tracking; all calculations must happen clientside.
 2. **Accessibility Standards:** Must pass WCAG contrast and accessibility audits (`npm run test:a11y`).
 3. **Branch Discipline:** Default target branch is `main`.
+
+## AI Agent Skills & MCP Integration (2026)
+
+### Recommended Skill Collections
+```bash
+# Skill management
+npm install -g @skillkit/cli && skillkit init
+skillkit recommend
+
+# React 19 / Tailwind v4 / PWA skills
+npx skills add PyModel/react-frontend-skills -s react,tailwind,pwa
+npx skills add seb1n/awesome-ai-agent-skills --skill react,pwa,nutrition
+
+# Security scan before install
+npm install -g @nvidia/skillspector
+skillspector scan <repo-url>
+```
+
+### MCP Server Configuration
+Configure in agent settings (`.claude/settings.json`, `kilo.jsonc`):
+```json
+{
+  "mcpServers": {
+    "browser": "browser-use/browser-use",
+    "openregister": "openregister/openregister-sdk",
+    "bundestag": "local-bundestag-api"
+  }
+}
+```
+
+### German API Integration Points
+| API | MCP/REST | Use Case | Config |
+|---|---|---|---|
+| OpenPlz | REST | Location-based store suggestions | No auth |
+| Feiertage | REST | Holiday-aware training/nutrition plans | No auth |
+| BrightSky/DWD | REST | Weather-aware outdoor training | No auth |
+| OpenRegister | REST + SDK | Supermarket chain entity verification | `OPENREGISTER_API_KEY` |
+| Bundestag DIP | REST | Consumer protection, food regulations | No auth |
+| Gesetze im Internet | REST | Legal reference (LFGB, LMIV) | No auth |
+
+### Subagent Delegation (Kilo Multi-Agent)
+Use native `task(agent="...", ...)` for specialized work:
+- `task(agent="architect", ...)` — Before new modules, localStorage schema changes, calculation engines
+- `task(agent="debugger", ...)` — Test failures, Biome lint errors, Playwright flakiness
+- `task(agent="revisor", ...)` — Pre-commit: security scan, coverage, diff analysis
+- `task(agent="marketolog", ...)` — App Store optimization, German market ASO
+
+### Verification Gates (Required per Commit)
+```bash
+npm run verify
+# Secret scanning
+npx -y gitleaks detect --no-git -v
+```

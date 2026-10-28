@@ -125,6 +125,65 @@ tests/                 # Vitest: расчёты, хранилище, демо-д
 Экспорт/импорт — обычный JSON-файл, поэтому данные переносятся между браузерами
 и устройствами вручную. Полный сброс — в «Профиле» и «Аналитике».
 
+## 🇩🇪 German API Integrations
+
+Forma integrates with official German public APIs for enhanced functionality:
+
+| API | Purpose | Auth | Integration |
+|---|---|---|---|
+| [OpenPlz API](https://openplzapi.org/de/Localities) | German postal codes for store finder | No | Location-based store suggestions |
+| [Feiertage API](https://feiertage-api.de/api/?jahr=2026) | Official holidays by Bundesland | No | Holiday-aware training/nutrition plans |
+| [BrightSky / DWD](https://api.brightsky.dev/) | German Weather Service data | No | Weather-aware outdoor training |
+| [OpenRegister (Handelsregister)](https://openregister.de/api) | 4M+ German companies for store verification | `apiKey` | Supermarket chain entity verification |
+| [Bundestag DIP API](https://dip.bundestag.de/ueber-dip/hilfe/api) | Consumer protection laws, food regulations | No | Regulatory compliance for food data |
+| [Gesetze im Internet](https://www.gesetze-im-internet.de/) | BGB, LFGB, LMIV (food info regulation) | No | Legal reference for labeling |
+| [Verbraucherzentrale APIs](https://www.verbraucherzentrale.de/) | Consumer price monitoring, food alerts | No | Price comparison, recall alerts |
+
+> **Note:** APIs marked with `apiKey` require environment variables in `.env`.
+
+## 🤖 AI Agent Skills Integration
+
+### Recommended Skill Collections
+```bash
+# Skill management
+npm install -g @skillkit/cli && skillkit init
+skillkit recommend
+
+# React 19 / Tailwind v4 / PWA skills
+npx skills add PyModel/react-frontend-skills -s react,tailwind,pwa
+npx skills add seb1n/awesome-ai-agent-skills --skill react,pwa,nutrition
+
+# Security scan before install
+npm install -g @nvidia/skillspector
+skillspector scan <repo-url>
+```
+
+### MCP Server Configuration
+Add to agent config (`.claude/settings.json`, `kilo.jsonc`):
+```json
+{
+  "mcpServers": {
+    "browser": "browser-use/browser-use",
+    "openregister": "openregister/openregister-sdk",
+    "bundestag": "local-bundestag-api"
+  }
+}
+```
+
+### Subagent Delegation (Kilo Multi-Agent)
+Use native `task(agent="...", ...)` for specialized work:
+- `task(agent="architect", ...)` — Before new modules, localStorage schema changes, calculation engines
+- `task(agent="debugger", ...)` — Test failures, Biome lint errors, Playwright flakiness
+- `task(agent="revisor", ...)` — Pre-commit: security scan, coverage, diff analysis
+- `task(agent="marketolog", ...)` — App Store optimization, German market ASO
+
+### Verification Gates (Required per Commit)
+```bash
+npm run verify
+# Secret scanning
+npx -y gitleaks detect --no-git -v
+```
+
 ## CI/CD
 
 - `.github/workflows/ci.yml` — типы, линт, юнит-тесты, сборка, затем Playwright (chromium, firefox)
