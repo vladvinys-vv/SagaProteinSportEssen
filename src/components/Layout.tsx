@@ -1,6 +1,6 @@
 import { Candy, Dumbbell, Home, Plus, ShieldCheck, Tag, UserRound, Utensils, Weight, Wine, X } from "lucide-react";
 import { type FC, type ReactNode, useEffect, useState } from "react";
-import { NavLink, useNavigate } from "react-router";
+import { NavLink, useLocation, useNavigate } from "react-router";
 
 const navItems = [
   { to: "/", label: "Сводка", icon: Home },
@@ -22,6 +22,7 @@ const quickActions = [
 const AppLayout: FC<{ children?: ReactNode }> = ({ children }) => {
   const [quickOpen, setQuickOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Лист быстрых действий закрывается по Esc (переход закрывает его в обработчике).
   useEffect(() => {
@@ -98,12 +99,15 @@ const AppLayout: FC<{ children?: ReactNode }> = ({ children }) => {
       </button>
 
       <nav className="bottom-nav" aria-label="Основная навигация">
-        {navItems.map(({ to, label, icon: Icon }) => (
-          <NavLink key={to} to={to} end={to === "/"} className={({ isActive }) => (isActive ? "is-active" : undefined)}>
-            <Icon size={19} />
-            <span>{label}</span>
-          </NavLink>
-        ))}
+        {navItems.map(({ to, label, icon: Icon }) => {
+          const isActive = to === "/" ? location.pathname === "/" : location.pathname.startsWith(to);
+          return (
+            <NavLink key={to} to={to} end={to === "/"} className={isActive ? "is-active" : undefined}>
+              <Icon size={19} />
+              <span>{label}</span>
+            </NavLink>
+          );
+        })}
       </nav>
     </div>
   );

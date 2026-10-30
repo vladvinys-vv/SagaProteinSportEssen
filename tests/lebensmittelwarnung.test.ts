@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   checkProductSafety,
-  filterWarnings,
   type FoodWarning,
+  filterWarnings,
 } from '../src/lib/lebensmittelwarnung';
 
 describe('lebensmittelwarnung module', () => {
