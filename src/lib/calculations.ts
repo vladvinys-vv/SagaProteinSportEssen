@@ -258,3 +258,56 @@ export const getNextWorkoutRecommendation = (program: WorkoutProgram, log?: Work
     return result;
   }, {});
 };
+
+
+export interface ProteinEfficiencyResult {
+  proteinPer100g: number;
+  totalProteinGrams: number;
+  costPer100gProtein: number;
+  rating: "EXCELLENT" | "GOOD" | "AVERAGE" | "EXPENSIVE";
+  label: string;
+}
+
+export const calculateProteinEfficiency = (
+  packagePrice: number,
+  packageSizeG: number,
+  proteinPer100g: number
+): ProteinEfficiencyResult => {
+  if (packagePrice <= 0 || packageSizeG <= 0 || proteinPer100g <= 0) {
+    return {
+      proteinPer100g: 0,
+      totalProteinGrams: 0,
+      costPer100gProtein: 0,
+      rating: "AVERAGE",
+      label: "Нет данных",
+    };
+  }
+
+  const totalProteinGrams = Math.round((packageSizeG * (proteinPer100g / 100)) * 10) / 10;
+  const costPer100gProtein = totalProteinGrams > 0 ? Math.round(((packagePrice / totalProteinGrams) * 100) * 100) / 100 : 0;
+
+  let rating: "EXCELLENT" | "GOOD" | "AVERAGE" | "EXPENSIVE" = "AVERAGE";
+  let label = "Средняя выгода";
+
+  if (costPer100gProtein < 1.75) {
+    rating = "EXCELLENT";
+    label = "Супер-выгода белка";
+  } else if (costPer100gProtein < 3.00) {
+    rating = "GOOD";
+    label = "Выгодный белок";
+  } else if (costPer100gProtein < 5.00) {
+    rating = "AVERAGE";
+    label = "Обычная цена";
+  } else {
+    rating = "EXPENSIVE";
+    label = "Дорогой источник";
+  }
+
+  return {
+    proteinPer100g,
+    totalProteinGrams,
+    costPer100gProtein,
+    rating,
+    label,
+  };
+};
