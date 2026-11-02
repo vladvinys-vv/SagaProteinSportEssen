@@ -2,7 +2,7 @@ import { DollarSign, Download, Plus, ShoppingBasket, Store, Tag, Trash2, Trendin
 import { useMemo, useState } from "react";
 import { Card, EmptyState, SectionHeader } from "@/components/UI";
 import { useFocusSection } from "@/hooks/useFocusSection";
-import { dateKey, getNormalizedPrice } from "@/lib/calculations";
+import { calculateProteinEfficiency, dateKey, getNormalizedPrice } from "@/lib/calculations";
 import { getDominantCurrency, getPriceComparisons, getShoppingSavings, getStoreRankings } from "@/lib/insights";
 import { dealToPriceEntry, fetchMarktguruDeals, type normalizeMarktguruOffer } from "@/lib/marktguru";
 import { plural } from "@/lib/plural";
@@ -408,17 +408,26 @@ export default function PricesPage() {
             <button type="button" className={sort === "newest" ? "is-active" : undefined} onClick={() => setSort("newest")}>Сначала новые</button>
           </div>
           <div className="price-list">
-            {sortedObservations.map((entry) => (
-              <div className="price-row" key={entry.id}>
-                <div>
-                  <strong>
-                    {entry.productName} <small>{money(getNormalizedPrice(entry), entry.currency)} / 100 {entry.packageSizeG ? "г" : "мл"}</small>
-                  </strong>
-                  <small>
-                    {entry.store} · {entry.city} · {entry.date}
-                  </small>
-                </div>
-                <button
+            {sortedObservations.map((entry) => {
+              const matchedFood = foods.find((f) => f.id === entry.productId || f.name.toLowerCase() === entry.productName.toLowerCase());
+              const proteinEff = matchedFood && matchedFood.protein > 0 && entry.packageSizeG
+                ? calculateProteinEfficiency(entry.packagePrice, entry.packageSizeG, matchedFood.protein)
+                : null;
+
+              return (
+                <div className="price-row" key={entry.id}>
+                  <div>
+                    <strong>
+                      {entry.productName} <small>{money(getNormalizedPrice(entry), entry.currency)} / 100 {entry.packageSizeG ? "г" : "мл"}</small>
+                    </strong>
+                    <small>
+                      {entry.store} · {entry.city} · {entry.date}
+                      {proteinEff && (
+                        <> · <span title={proteinEff.label} className="protein-badge">⚡ {money(proteinEff.costPer100gProtein, entry.currency)} / 100г белка</span></>
+                      )}
+                    </small>
+                  </div>
+                  <button
                   className="icon-button danger"
                   type="button"
                   aria-label={`Удалить цену ${entry.productName} в ${entry.store}`}
@@ -427,7 +436,8 @@ export default function PricesPage() {
                   <Trash2 size={14} />
                 </button>
               </div>
-            ))}
+              );
+            })}
           </div>
         </Card>
       </div>

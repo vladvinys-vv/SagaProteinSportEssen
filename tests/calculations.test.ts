@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createEmptyState } from "@/data/demo";
 import {
   calculateDailyTotals,
+  calculateProteinEfficiency,
   calculateMacroTargets,
   calculateRecoveryPlan,
   dateKey,
@@ -133,5 +134,21 @@ describe("расчёты Forma", () => {
     expect(reward?.fitsPlan).toBe(true);
     expect(reward?.calories).toBeGreaterThan(0);
     expect(reward?.protein).toBeGreaterThan(0);
+  });
+  it("рассчитывает белковую выгоду (EUR/100г белка) и градации рейтинга", () => {
+    const quark = calculateProteinEfficiency(1.35, 500, 12);
+    expect(quark.totalProteinGrams).toBe(60);
+    expect(quark.costPer100gProtein).toBe(2.25);
+    expect(quark.rating).toBe("GOOD");
+    expect(quark.label).toBe("Выгодный белок");
+
+    const tuna = calculateProteinEfficiency(0.99, 200, 30);
+    expect(tuna.costPer100gProtein).toBe(1.65);
+    expect(tuna.rating).toBe("EXCELLENT");
+    expect(tuna.label).toBe("Супер-выгода белка");
+
+    const bar = calculateProteinEfficiency(2.49, 50, 40);
+    expect(bar.costPer100gProtein).toBe(12.45);
+    expect(bar.rating).toBe("EXPENSIVE");
   });
 });
