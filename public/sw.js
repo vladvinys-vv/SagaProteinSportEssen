@@ -1,14 +1,16 @@
 /**
- * Офлайн-оболочка приложения «Форма».
+ * Service Worker with Offline App Shell and Supermarket Deals Caching.
  *
- * Стратегия:
- *  - навигационные запросы — network-first, при отсутствии сети отдаём index.html;
- *  - остальные GET-запросы своего origin — cache-first (сборка Vite хеширует имена).
- *
- * ВАЖНО: при изменении стратегии или списка APP_SHELL поднимайте CACHE_VERSION.
+ * Strategies:
+ *  - Navigation: Network-first, falls back to cached index.html.
+ *  - App Shell: Cache-first for hashed Vite assets and icons.
+ *  - Deals & Data: Network-first with cache fallback for offline supermarket shopping.
  */
-const CACHE_VERSION = "v3";
+
+const CACHE_VERSION = "v4";
 const CACHE_NAME = `forma-shell-${CACHE_VERSION}`;
+const DATA_CACHE_NAME = `forma-data-${CACHE_VERSION}`;
+
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -33,7 +35,13 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))))
+      .then((keys) =>
+        Promise.all(
+          keys
+            .filter((key) => key !== CACHE_NAME && key !== DATA_CACHE_NAME)
+            .map((key) => caches.delete(key)),
+        ),
+      )
       .then(() => self.clients.claim()),
   );
 });
@@ -47,9 +55,8 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET") return;
 
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin) return;
 
-  // Навигация: свежий документ из сети, при офлайне — кэшированная оболочка.
+  // 1. Navigation requests (HTML pages)
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request)
@@ -68,20 +75,42 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Статика: сначала кэш, затем сеть с докладыванием в кэш.
-  event.respondWith(
-    caches.match(request).then(
-      (cached) =>
-        cached ??
-        fetch(request)
-          .then((response) => {
-            if (response.ok && response.type === "basic") {
-              const copy = response.clone();
-              caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-            }
-            return response;
-          })
-          .catch(() => caches.match("/index.html").then((fallback) => fallback ?? Response.error())),
-    ),
-  );
+  // 2. Deals and API requests (Supermarket data / offline sync)
+  if (url.pathname.includes("/api/") || url.pathname.endsWith(".json")) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(DATA_CACHE_NAME).then((cache) => cache.put(request, copy));
+          }
+          return response;
+        })
+        .catch(() =>
+          caches.open(DATA_CACHE_NAME).then((cache) =>
+            cache.match(request).then((cached) => cached ?? Response.error()),
+          ),
+        ),
+    );
+    return;
+  }
+
+  // 3. Static assets from same origin
+  if (url.origin === self.location.origin) {
+    event.respondWith(
+      caches.match(request).then(
+        (cached) =>
+          cached ??
+          fetch(request)
+            .then((response) => {
+              if (response.ok && response.type === "basic") {
+                const copy = response.clone();
+                caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+              }
+              return response;
+            })
+            .catch(() => caches.match("/index.html").then((fallback) => fallback ?? Response.error())),
+      ),
+    );
+  }
 });
