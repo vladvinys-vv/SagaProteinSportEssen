@@ -1,5 +1,5 @@
-import { describe, expect, it, beforeEach } from 'vitest';
-import { OfflineDealCache, type CachedDealItem } from '@/lib/offlineDealCache';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { type CachedDealItem, OfflineDealCache } from '@/lib/offlineDealCache';
 
 // In-memory Mock Storage for unit tests
 class MockStorage implements Storage {
