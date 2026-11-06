@@ -1,0 +1,37 @@
+stages:
+  - test
+  - build
+
+variables:
+  npm_config_cache: "$CI_PROJECT_DIR/.npm"
+
+cache:
+  key:
+    files:
+      - package-lock.json
+  paths:
+    - .npm/
+
+before_script:
+  - node --version
+  - npm --version
+  - npm ci --prefer-offline --no-audit
+
+test:
+  stage: test
+  image: node:22-alpine
+  script:
+    - npm run typecheck
+    - npm run lint
+    - npm run test
+
+build:
+  stage: build
+  image: node:22-alpine
+  script:
+    - npm run build
+  artifacts:
+    name: "forma-fitness-dist-$CI_COMMIT_SHORT_SHA"
+    expire_in: 7 days
+    paths:
+      - dist/
