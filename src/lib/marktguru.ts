@@ -1,4 +1,12 @@
 import type { PriceEntry } from "@/types";
+import {
+  STATIC_MARKTGURU_KEYS,
+  SUPERMARKET_CHAINS,
+  classifyGermanFoodSection,
+  enrichBrochureDeal,
+  type BrochureDeal,
+} from "./supermarkets";
+export type { GermanFoodSection, BrochureDeal } from "./supermarkets";
 
 export interface MarktguruProduct {
   name: string;
@@ -74,7 +82,13 @@ async function getApiKeys(): Promise<{ clientKey: string; apiKey: string }> {
     return { clientKey, apiKey };
   }
 
-  throw new Error("Could not extract Marktguru API keys");
+  // Resilient fallback to static upstream keys
+  cachedKeys = {
+    clientKey: STATIC_MARKTGURU_KEYS.clientKey,
+    apiKey: STATIC_MARKTGURU_KEYS.apiKey,
+    expiresAt: Date.now() + 24 * 60 * 60 * 1000,
+  };
+  return { clientKey: cachedKeys.clientKey, apiKey: cachedKeys.apiKey };
 }
 
 function parseQuantity(text: string): { liters: number; kg: number; raw: string } {
@@ -291,4 +305,75 @@ export async function searchMarktguruDeals(
   stores?: string[]
 ): Promise<ImportedDeal[]> {
   return fetchMarktguruDeals(query, { zipCode: zipCode || DEFAULT_ZIP, stores: stores || [], limit: 50 });
+}
+
+export async function fetchWeeklyBrochures(
+  zipCode = DEFAULT_ZIP,
+  stores: string[] = []
+): Promise<BrochureDeal[]> {
+  const keys = await getApiKeys();
+  const url = new URL(`${MARKTGURU_BASE}/offers`);
+  url.searchParams.set("as", "web");
+  url.searchParams.set("limit", "500");
+  url.searchParams.set("offset", "0");
+  url.searchParams.set("zipCode", zipCode);
+
+  const resp = await fetch(url.toString(), {
+    method: "GET",
+    headers: {
+      "x-clientkey": keys.clientKey,
+      "x-apikey": keys.apiKey,
+      "x-apiversion": "1",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      Accept: "application/json",
+      "Accept-Language": "de-DE,de;q=0.9",
+    },
+  });
+
+  if (!resp.ok) {
+    throw new Error(`Marktguru API error: ${resp.status}`);
+  }
+
+  const data = await resp.json();
+  const results = data.results || [];
+  const deals: BrochureDeal[] = [];
+  const now = Date.now();
+
+  for (const o of results) {
+    const rawAdvertiser = o.advertisers?.[0]?.name;
+    const store = SUPERMARKET_CHAINS[rawAdvertiser] || rawAdvertiser;
+    if (!store) continue;
+
+    if (stores.length > 0) {
+      const match = stores.some((s) => s.toLowerCase().trim() === store.toLowerCase().trim());
+      if (!match) continue;
+    }
+
+    const validity = o.validityDates?.[0];
+    if (validity?.to && new Date(validity.to).getTime() < now) {
+      continue;
+    }
+
+    const section = classifyGermanFoodSection(o.categories, o.product?.name);
+    const deal: BrochureDeal = {
+      id: String(o.id),
+      supermarket: store,
+      name: o.product?.name || "Unbekanntes Produkt",
+      brand: o.brand?.name && !/^thisisnobrand/i.test(o.brand.name) ? o.brand.name : undefined,
+      price: o.price,
+      oldPrice: o.oldPrice,
+      unitPrice: o.referencePrice || o.unitPrice,
+      unit: o.unit?.shortName || o.quantity,
+      detail: o.description?.trim(),
+      section,
+      categoryDE: o.categories?.[0]?.name,
+      validFrom: validity?.from,
+      validTo: validity?.to,
+      url: `https://www.marktguru.de/offers/${o.id}`,
+    };
+
+    deals.push(enrichBrochureDeal(deal));
+  }
+
+  return deals;
 }
