@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Protein Cost Efficiency Metric**: Added calculateProteinEfficiency in src/lib/calculations.ts computing cost per 100g of pure protein (€/100g protein), total protein content, and visual efficiency badge on product observations in src/pages/PricesPage.tsx.
+- **Vitest Unit Test Suite**: Added test coverage in 	ests/calculations.test.ts verifying protein calculations for athletic budgeting (86/86 unit tests passing).
+
 ### Security
 - **Vite & Source-Map Security Upgrades**: Updated `vite` to `6.4.5` and `source-map-js` to `1.2.2`, resolving high-severity advisories (GHSA-698v-4r3x-3vcv, GHSA-r825-w8mm-5pxw, GHSA-68fv-2mgg-jv7q).
 
