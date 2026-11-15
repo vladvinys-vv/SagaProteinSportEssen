@@ -1,0 +1,19 @@
+workflows:
+  web-build:
+    name: Web build
+    max_build_duration: 60
+    environment:
+      node: 20
+    cache:
+      cache_paths:
+        - ~/.npm
+        - node_modules
+    scripts:
+      - name: Install dependencies
+        script: npm ci
+      - name: Verify
+        script: npm run verify
+      - name: Build
+        script: npm run build
+    artifacts:
+      - dist/**
