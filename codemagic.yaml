@@ -17,3 +17,38 @@ workflows:
         script: npm run build
     artifacts:
       - dist/**
+
+  android-apk:
+    name: Android APK
+    max_build_duration: 60
+    environment:
+      node: 20
+      java: 17
+    cache:
+      cache_paths:
+        - ~/.npm
+        - ~/.gradle/caches
+        - node_modules
+    scripts:
+      - name: Install dependencies
+        script: npm ci
+      - name: Build web assets
+        script: npm run build
+      - name: Install Capacitor tooling
+        script: npm install --no-save @capacitor/core @capacitor/cli @capacitor/android
+      - name: Configure Capacitor (if missing)
+        script: |
+          if [ ! -f capacitor.config.ts ] && [ ! -f capacitor.config.json ]; then
+            npx cap init "Forma Fitness" "com.forma.fitness" --web-dir dist
+          fi
+      - name: Add Android platform (if missing)
+        script: |
+          if [ ! -d android ]; then
+            npx cap add android
+          fi
+      - name: Sync web assets
+        script: npx cap sync android
+      - name: Build debug APK
+        script: cd android && ./gradlew assembleDebug
+    artifacts:
+      - android/app/build/outputs/**/*.apk
